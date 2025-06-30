@@ -19732,7 +19732,7 @@ app.whenReady().then(async () => {
       const user = await authenticateUser(username, password);
       return user;
     } catch (error) {
-      console.error("Error during authentication:", error);
+      console.error("Error durante la autenticacion:", error);
       throw error;
     }
   });
