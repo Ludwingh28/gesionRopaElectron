@@ -38,7 +38,7 @@ function App() {
         <aside className="w-64 bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 hidden md:block">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Lupita Store</h2>
-            <button onClick={toggleTheme} className="hover:scale-110 transition">
+            <button onClick={toggleTheme} className="hover:scale-110 transition cursor-pointer">
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
