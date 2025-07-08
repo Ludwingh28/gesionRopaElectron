@@ -26,12 +26,7 @@ const Login = () => {
   // Estado para el modo oscuro
   const [darkMode, setDarkMode] = useState(true);
 
-  // Redirección automática si ya hay sesión
   useEffect(() => {
-    const sessionUser = localStorage.getItem("session");
-    if (sessionUser) {
-      setAuthenticatedUser(sessionUser);
-    }
     const isDark = localStorage.getItem("theme") === "dark";
     setDarkMode(isDark);
     document.documentElement.classList.toggle("dark", isDark);
@@ -63,7 +58,6 @@ const Login = () => {
       if (isAuthenticated) {
         setSuccessMessage("¡Inicio de sesión exitoso!");
         setAuthenticatedUser(username); // Guarda el nombre de usuario autenticado
-        localStorage.setItem("session", username); // Persistir sesión
         // Aquí podrías redirigir al usuario a la página principal de la aplicación,
         // o cambiar el estado global para mostrar el contenido de la aplicación.
         // Ejemplo: navigate('/shop'); o dispatch({ type: 'LOGIN_SUCCESS' });
