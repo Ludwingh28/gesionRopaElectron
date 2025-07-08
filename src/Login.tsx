@@ -89,7 +89,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#fdfbf7] dark:bg-gray-900 transition-colors duration-300">
       {/* Botón modo claro/oscuro */}
       <div className="absolute top-4 right-4">
-        <button onClick={toggleTheme} className="text-gray-700 dark:text-white hover:scale-110 transition">
+        <button onClick={toggleTheme} className="text-gray-700 dark:text-white hover:scale-110 transition cursor-pointer">
           {darkMode ? <Sun size={22} /> : <Moon size={22} />}
         </button>
       </div>
