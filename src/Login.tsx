@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Moon, Sun, User, Lock } from "lucide-react";
+import { Moon, Sun, User, Lock, Eye, EyeOff } from "lucide-react";
 import App from "./App";
 
 declare global {
@@ -16,6 +16,8 @@ const Login = () => {
   // Estado para el usuario y contraseña
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   // Estado para el mensaje de error
   const [errorMessage, setErrorMessage] = useState("");
   // Estado para el usuario autenticado (podría ser un objeto de usuario en lugar de null)
@@ -45,9 +47,11 @@ const Login = () => {
 
     setErrorMessage(""); // Limpiar cualquier mensaje de error previo
     setSuccessMessage(""); // Limpiar cualquier mensaje de éxito previo
+    setLoading(true);
 
     if (!username || !password) {
       setErrorMessage("Por favor, ingresa tu usuario y contraseña.");
+      setLoading(false);
       return;
     }
 
@@ -62,14 +66,17 @@ const Login = () => {
         // o cambiar el estado global para mostrar el contenido de la aplicación.
         // Ejemplo: navigate('/shop'); o dispatch({ type: 'LOGIN_SUCCESS' });
         console.log("Usuario autenticado con éxito:", username);
+        setLoading(false);
       } else {
         setErrorMessage("Usuario o contraseña incorrectos.");
         setAuthenticatedUser(null); // Asegúrate de que no haya usuario autenticado
+        setLoading(false);
       }
     } catch (error: any) {
       console.error("Error al autenticar usuario:", error);
       setErrorMessage(`Error de conexión: ${error.message}`);
       setAuthenticatedUser(null);
+      setLoading(false);
     }
   };
 
@@ -118,17 +125,35 @@ const Login = () => {
             <div className="flex items-center bg-[#f3f4f6] dark:bg-gray-700 rounded px-3 py-2">
               <Lock className="text-gray-600 dark:text-gray-300 mr-2" size={18} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 className="bg-transparent outline-none w-full text-gray-800 dark:text-white placeholder-gray-500"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} // Conecta el estado de la contraseña
+                onChange={(e) => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="ml-2 text-gray-600 dark:text-gray-300 focus:outline-none cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-[#e87e8a] dark:bg-[#d6a463] hover:opacity-90 text-white font-semibold py-2 rounded-xl transition">
-            Iniciar Sesión
+          <button
+            type="submit"
+            className={`w-full bg-[#e87e8a] dark:bg-[#d6a463] hover:opacity-90 text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center ${loading ? 'opacity-70' : ''}`}
+            disabled={loading}
+          >
+            {loading ? (
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+            ) : 'Iniciar Sesión'}
           </button>
         </form>
       </div>

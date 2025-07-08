@@ -2,7 +2,8 @@ import React from "react";
 
 const Shop = () => (
   <div>
-    <h1 className="text-3xl font-bold mb-4">Shop</h1>
+    <header className="text-3xl font-bold pb-2">Shop</header>
+    <hr className="border-[#e19ea6] dark:border-[#d6a463] mb-6" />
     <p>Hola mundo desde Shop</p>
   </div>
 );
