@@ -19713,6 +19713,66 @@ async function getRoles() {
   const sql = "SELECT * FROM roles ORDER BY nombre ASC";
   return await executeQuery(sql);
 }
+async function getProducts(search = "") {
+  let sql = `
+    SELECT p.*, m.nombre AS marca, c.nombre AS categoria
+    FROM productos p
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN categorias c ON p.categoria_id = c.id`;
+  const params = [];
+  if (search) {
+    sql += " WHERE p.detalle LIKE ? OR p.codigo_interno LIKE ?";
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  sql += " ORDER BY p.id ASC";
+  return await executeQuery(sql, params);
+}
+async function createProduct(data) {
+  const codigo = await generarCodigoInterno();
+  const sql = `
+    INSERT INTO productos (codigo_interno, detalle, marca_id, categoria_id, costo_compra, precio_venta_base, activo)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  await executeQuery(sql, [codigo, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
+  return { success: true };
+}
+async function updateProduct(data) {
+  const sql = `
+    UPDATE productos
+    SET detalle=?, marca_id=?, categoria_id=?, costo_compra=?, precio_venta_base=?, activo=?
+    WHERE id=?`;
+  await executeQuery(sql, [data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo, data.id]);
+  return { success: true };
+}
+async function deleteProduct(id) {
+  await executeQuery("DELETE FROM inventario WHERE producto_id = ?", [id]);
+  await executeQuery("DELETE FROM productos WHERE id = ?", [id]);
+  return { success: true };
+}
+async function getBrands() {
+  return await executeQuery("SELECT id, nombre FROM marcas ORDER BY nombre");
+}
+async function getCategories() {
+  return await executeQuery("SELECT id, nombre FROM categorias ORDER BY nombre");
+}
+async function generarCodigoInterno() {
+  const [{ max }] = await executeQuery("SELECT MAX(id) AS max FROM productos");
+  return `P${(max ?? 0) + 1}`.padStart(6, "0");
+}
+async function updateProductPrice(productId, newPrice) {
+  const sql = "UPDATE productos SET precio_venta_base = ? WHERE id = ?";
+  await executeQuery(sql, [newPrice, productId]);
+  return { success: true };
+}
+async function createBrand(data) {
+  const sql = "INSERT INTO marcas (nombre) VALUES (?)";
+  const result = await executeQuery(sql, [data.nombre]);
+  return { id: result.insertId, success: true };
+}
+async function createCategory(data) {
+  const sql = "INSERT INTO categorias (nombre) VALUES (?)";
+  const result = await executeQuery(sql, [data.nombre]);
+  return { id: result.insertId, success: true };
+}
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -19825,6 +19885,87 @@ app.whenReady().then(async () => {
       return [];
     }
   });
+});
+ipcMain.handle("getProducts", async (event, search = "") => {
+  try {
+    const products = await getProducts(search);
+    return products;
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    throw error;
+  }
+});
+ipcMain.handle("createProduct", async (event, data) => {
+  try {
+    const result = await createProduct(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear producto:", error);
+    throw error;
+  }
+});
+ipcMain.handle("updateProduct", async (event, data) => {
+  try {
+    const result = await updateProduct(data);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar producto:", error);
+    throw error;
+  }
+});
+ipcMain.handle("deleteProduct", async (event, id) => {
+  try {
+    const result = await deleteProduct(id);
+    return result;
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+    throw error;
+  }
+});
+ipcMain.handle("updateProductPrice", async (event, productId, newPrice) => {
+  try {
+    const result = await updateProductPrice(productId, newPrice);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar precio de producto:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getBrands", async () => {
+  try {
+    const brands = await getBrands();
+    return brands;
+  } catch (error) {
+    console.error("Error al obtener marcas:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getCategories", async () => {
+  try {
+    const categories = await getCategories();
+    return categories;
+  } catch (error) {
+    console.error("Error al obtener categorías:", error);
+    throw error;
+  }
+});
+ipcMain.handle("createBrand", async (event, data) => {
+  try {
+    const result = await createBrand(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear marca:", error);
+    throw error;
+  }
+});
+ipcMain.handle("createCategory", async (event, data) => {
+  try {
+    const result = await createCategory(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear categoría:", error);
+    throw error;
+  }
 });
 export {
   MAIN_DIST,

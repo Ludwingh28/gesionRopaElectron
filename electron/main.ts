@@ -2,7 +2,24 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { connectToDatabase, authenticateUser, getUsers, updateUserStatus, createUser, updateUser, getRoles } from "./database";
+import {
+  connectToDatabase,
+  authenticateUser,
+  getUsers,
+  updateUserStatus,
+  createUser,
+  updateUser,
+  getRoles,
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  updateProductPrice,
+  getBrands,
+  getCategories,
+  createBrand,
+  createCategory,
+} from "./database";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -151,4 +168,95 @@ app.whenReady().then(async () => {
       return [];
     }
   });
+});
+
+// Handlers para productos
+ipcMain.handle("getProducts", async (event, search = "") => {
+  try {
+    const products = await getProducts(search);
+    return products;
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("createProduct", async (event, data) => {
+  try {
+    const result = await createProduct(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear producto:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("updateProduct", async (event, data) => {
+  try {
+    const result = await updateProduct(data);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar producto:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("deleteProduct", async (event, id: number) => {
+  try {
+    const result = await deleteProduct(id);
+    return result;
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("updateProductPrice", async (event, productId: number, newPrice: number) => {
+  try {
+    const result = await updateProductPrice(productId, newPrice);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar precio de producto:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getBrands", async () => {
+  try {
+    const brands = await getBrands();
+    return brands;
+  } catch (error) {
+    console.error("Error al obtener marcas:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getCategories", async () => {
+  try {
+    const categories = await getCategories();
+    return categories;
+  } catch (error) {
+    console.error("Error al obtener categorías:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("createBrand", async (event, data) => {
+  try {
+    const result = await createBrand(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear marca:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("createCategory", async (event, data) => {
+  try {
+    const result = await createCategory(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear categoría:", error);
+    throw error;
+  }
 });

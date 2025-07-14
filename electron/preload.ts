@@ -24,7 +24,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
   createUser: (data: any) => ipcRenderer.invoke("createUser", data),
   updateUser: (data: any) => ipcRenderer.invoke("updateUser", data),
   getRoles: () => ipcRenderer.invoke("getRoles"),
-
+  // API para gestión de productos:
+  getProducts: (search: string = "") => ipcRenderer.invoke("getProducts", search),
+  createProduct: (data: any) => ipcRenderer.invoke("createProduct", data),
+  updateProduct: (data: any) => ipcRenderer.invoke("updateProduct", data),
+  deleteProduct: (id: number) => ipcRenderer.invoke("deleteProduct", id),
+  updateProductPrice: (productId: number, newPrice: number) => ipcRenderer.invoke("updateProductPrice", productId, newPrice),
+  getBrands: () => ipcRenderer.invoke("getBrands"),
+  getCategories: () => ipcRenderer.invoke("getCategories"),
+  createBrand: (data: any) => ipcRenderer.invoke("createBrand", data),
+  createCategory: (data: any) => ipcRenderer.invoke("createCategory", data),
   // You can expose other APTs you need here.
   // ...
 });
