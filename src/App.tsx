@@ -8,6 +8,7 @@ import Stock from "./sections/Stock";
 import ProductEntry from "./sections/ProductEntry";
 import ProductManagement from "./sections/ProductManagement";
 import Reports from "./sections/Reports";
+import UserManagement from "./sections/UserManagement";
 
 // Componente Sidebar que puede usar useLocation
 const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: () => void }) => {
@@ -101,6 +102,18 @@ const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: ()
           <span>Reportes</span>
         </Link>
 
+        <Link
+          to="/user-management"
+          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
+            isActive("/user-management")
+              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
+              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
+          }`}
+        >
+          <Users size={20} />
+          <span>Gestión de Usuarios</span>
+        </Link>
+
         <Link 
           to="/soporte" 
           className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
@@ -157,6 +170,7 @@ const AppContent = () => {
           <Route path="/product-entry" element={<ProductEntry />} />
           <Route path="/product-management" element={<ProductManagement />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/user-management" element={<UserManagement />} />
           <Route path="/soporte" element={<Support />} />
         </Routes>
       </main>
