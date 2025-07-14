@@ -159,10 +159,13 @@ CALL sp_reporte_ventas_promotora('2025-01-01', '2025-12-31');
 
 ### `sp_reporte_productos_mas_vendidos()`
 ```sql
-CALL sp_reporte_productos_mas_vendidos('2025-01-01', '2025-12-31', 20);
+-- Usar 20 por defecto (pasar NULL o 0 para usar el valor por defecto)
+CALL sp_reporte_productos_mas_vendidos('2025-01-01', '2025-12-31', NULL);
+-- O especificar un límite personalizado
+CALL sp_reporte_productos_mas_vendidos('2025-01-01', '2025-12-31', 10);
 ```
 **Retorna:** Top productos más vendidos  
-**Nota:** Usa PREPARE STATEMENT para manejar el parámetro LIMIT dinámicamente
+**Nota:** Si p_limite es NULL o ≤ 0, usa 20 como valor por defecto
 
 ### `sp_productos_stock_bajo()`
 ```sql
@@ -197,7 +200,10 @@ ORDER BY SUM(subtotal) DESC;
 
 ### 2. Productos Más Vendidos
 ```sql
-CALL sp_reporte_productos_mas_vendidos(fecha_inicio, fecha_fin, limite);
+-- Usar valor por defecto (20 productos)
+CALL sp_reporte_productos_mas_vendidos(fecha_inicio, fecha_fin, NULL);
+-- O especificar límite personalizado
+CALL sp_reporte_productos_mas_vendidos(fecha_inicio, fecha_fin, 10);
 ```
 
 ### 3. Análisis por Marca
@@ -246,6 +252,16 @@ ORDER BY stock_actual ASC;
 CALL sp_reporte_ventas_promotora(
     DATE_FORMAT(NOW(), '%Y-%m-01'),
     LAST_DAY(NOW())
+);
+```
+
+### Reporte de Productos Más Vendidos
+```sql
+-- Top 10 productos del mes actual
+CALL sp_reporte_productos_mas_vendidos(
+    DATE_FORMAT(NOW(), '%Y-%m-01'),
+    LAST_DAY(NOW()),
+    10
 );
 ```
 

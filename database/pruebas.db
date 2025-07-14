@@ -220,7 +220,7 @@ CALL sp_reporte_ventas_promotora(DATE_SUB(CURDATE(), INTERVAL 30 DAY), CURDATE()
 
 -- Reporte de productos más vendidos
 SELECT '=== PRODUCTOS MÁS VENDIDOS (ÚLTIMOS 30 DÍAS) ===' AS reporte;
-CALL sp_reporte_productos_mas_vendidos(DATE_SUB(CURDATE(), INTERVAL 30 DAY), CURDATE(), 10);
+CALL sp_reporte_productos_mas_vendidos(DATE_SUB(CURDATE(), INTERVAL 30 DAY), CURDATE(), NULL);
 
 -- Reporte de productos con stock bajo
 SELECT '=== PRODUCTOS CON STOCK BAJO ===' AS reporte;

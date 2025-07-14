@@ -504,11 +504,16 @@ DELIMITER //
 CREATE PROCEDURE sp_reporte_productos_mas_vendidos(
     IN p_fecha_inicio DATE,
     IN p_fecha_fin DATE,
-    IN p_limite INT DEFAULT 20
+    IN p_limite INT
 )
 BEGIN
-    SET @sql = CONCAT('
-        SELECT 
+    -- Establecer valor por defecto si es NULL
+    IF p_limite IS NULL OR p_limite <= 0 THEN
+        SET p_limite = 20;
+    END IF;
+    
+    SET @sql = CONCAT(
+        'SELECT 
             p.codigo_interno,
             p.detalle,
             m.nombre AS marca,
@@ -522,11 +527,12 @@ BEGIN
         JOIN inventario i ON p.id = i.producto_id
         JOIN detalle_ventas dv ON i.id = dv.inventario_id
         JOIN ventas v ON dv.venta_id = v.id
-        WHERE DATE(v.fecha_venta) BETWEEN ''', p_fecha_inicio, ''' AND ''', p_fecha_fin, '''
-        AND v.estado = ''completada''
+        WHERE DATE(v.fecha_venta) BETWEEN "', p_fecha_inicio, '" AND "', p_fecha_fin, '"
+        AND v.estado = "completada"
         GROUP BY p.id, p.codigo_interno, p.detalle, m.nombre, c.nombre
         ORDER BY total_vendido DESC
-        LIMIT ', p_limite);
+        LIMIT ', p_limite
+    );
     
     PREPARE stmt FROM @sql;
     EXECUTE stmt;
@@ -628,7 +634,7 @@ JOIN colores col ON i.color_id = col.id;
 CREATE INDEX idx_ventas_fecha_usuario ON ventas(fecha_venta, usuario_id);
 CREATE INDEX idx_movimientos_fecha_tipo ON movimientos_inventario(fecha_movimiento, tipo_movimiento);
 CREATE INDEX idx_productos_precio ON productos(precio_venta_base);
-CREATE INDEX idx_inventario_stock_categoria ON inventario(stock_actual) USING BTREE;
+-- Índice en stock_actual ya existe en la definición de la tabla inventario
 
 -- =====================================================
 -- FUNCIÓN PARA VERIFICAR INTEGRIDAD DE DATOS
