@@ -97,11 +97,11 @@ const UserManagement = () => {
               onChange={e => setSearch(e.target.value)}
               className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full"
             />
-            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold">Buscar</button>
+            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">Buscar</button>
           </form>
           <button
             onClick={handleAdd}
-            className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold shadow"
+            className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold shadow cursor-pointer"
           >
             Agregar
           </button>
@@ -131,7 +131,7 @@ const UserManagement = () => {
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => handleSwitch(user.id, !!user.activo)}
-                        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? 'bg-green-500' : 'bg-gray-400'}`}
+                        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? 'bg-green-500' : 'bg-gray-400'} cursor-pointer`}
                         title={user.activo ? 'Activo' : 'Inactivo'}
                       >
                         <span
@@ -142,7 +142,7 @@ const UserManagement = () => {
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => handleEdit(user)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
                       >
                         Editar
                       </button>

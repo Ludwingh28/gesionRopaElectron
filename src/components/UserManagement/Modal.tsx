@@ -73,7 +73,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer"
         >
           ×
         </button>
@@ -171,7 +171,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
           </div>
           <button
             type="submit"
-            className="w-full bg-[#e87e8a] dark:bg-[#d6a463] text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center disabled:opacity-60"
+            className="w-full bg-[#e87e8a] dark:bg-[#d6a463] text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center disabled:opacity-60 cursor-pointer"
             disabled={loading}
           >
             {loading ? "Guardando..." : user ? "Guardar Cambios" : "Crear Usuario"}
