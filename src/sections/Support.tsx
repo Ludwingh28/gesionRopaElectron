@@ -16,28 +16,49 @@ const supportData = [
 ];
 
 // Componente para mostrar una card de soporte
-const SupportCard = ({ nombre, telefono, email }: { nombre: string; telefono: string; email: string }) => (
-  <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 max-w-md w-full border border-[#f8cdd2] dark:border-[#d6a463] space-y-6">
-    <div className="flex items-center space-x-4">
-      <User className="text-pink-500 dark:text-[#d6a463]" />
-      <span>
-        <strong>Nombre:</strong> {nombre}
-      </span>
+const SupportCard = ({ nombre, telefono, email }: { nombre: string; telefono: string; email: string }) => {
+  // Eliminar espacios y símbolos para el enlace de WhatsApp
+  const phoneNumber = telefono.replace(/[^\d]/g, "");
+  const whatsappMessage = encodeURIComponent("Hola, necesito soporte con la tienda.");
+  const whatsappLink = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 max-w-md w-full border border-[#f8cdd2] dark:border-[#d6a463] space-y-6">
+      <div className="flex items-center space-x-4">
+        <User className="text-pink-500 dark:text-[#d6a463]" />
+        <span>
+          <strong>Nombre:</strong> {nombre}
+        </span>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Phone className="text-pink-500 dark:text-[#d6a463]" />
+        <span>
+          <strong>Teléfono:</strong>{" "}
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-green-600 hover:underline dark:text-green-400"
+          >
+            {telefono}
+          </a>
+        </span>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Mail className="text-pink-500 dark:text-[#d6a463]" />
+        <span>
+          <strong>Email:</strong>{" "}
+          <a
+            href={`mailto:${email}?subject=Soporte`}
+            className="text-blue-600 hover:underline dark:text-blue-400"
+          >
+            {email}
+          </a>
+        </span>
+      </div>
     </div>
-    <div className="flex items-center space-x-4">
-      <Phone className="text-pink-500 dark:text-[#d6a463]" />
-      <span>
-        <strong>Teléfono:</strong> {telefono}
-      </span>
-    </div>
-    <div className="flex items-center space-x-4">
-      <Mail className="text-pink-500 dark:text-[#d6a463]" />
-      <span>
-        <strong>Email:</strong> {email}
-      </span>
-    </div>
-  </div>
-);
+  );
+};
 
 const Support = () => {
   const [darkMode, setDarkMode] = useState(false);

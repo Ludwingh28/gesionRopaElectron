@@ -46,14 +46,14 @@ export async function authenticateUser(username: string, password: string): Prom
   const sql = `
         SELECT
             u.usuario,
-            u.contrasena,
+            u.password_hash,
             r.nombre AS rol_nombre
         FROM
-            Usuario AS u
+            Usuarios AS u
         JOIN
-            Rol AS r ON u.idRol = r.id
+            roles AS r ON u.rol_id = r.id
         WHERE
-            u.usuario = ? AND u.contrasena = ?`;
+            u.usuario = ? AND u.password_hash = ?`;
 
   const rows = await executeQuery(sql, [username, password]);
   return rows[0] || null;
