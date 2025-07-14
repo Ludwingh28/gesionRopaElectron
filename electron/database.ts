@@ -62,7 +62,7 @@ export async function authenticateUser(username: string, password: string): Prom
 
 export async function getUsers(search: string = ""): Promise<any[]> {
   let sql = `
-    SELECT u.*, r.nombre AS rol_nombre
+    SELECT u.id, u.nombre, u.usuario, u.email, u.telefono, u.password_hash, r.nombre AS rol_nombre, u.created_at, u.updated_at, u.activo
     FROM Usuarios AS u
     JOIN roles AS r ON u.rol_id = r.id
   `;

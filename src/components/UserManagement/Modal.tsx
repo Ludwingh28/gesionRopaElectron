@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface ModalProps {
   open: boolean;
@@ -22,15 +23,22 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
   const [form, setForm] = useState<any>(initialState);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setForm({ ...user, password_hash: "" }); // No mostrar hash real
+      // Asegurarse de que el rol_id sea el correcto (buscar por nombre si viene como nombre)
+      let rolId = user.rol_id;
+      if (!rolId && user.rol_nombre) {
+        const found = roles.find((r) => r.nombre === user.rol_nombre);
+        rolId = found ? found.id : "";
+      }
+      setForm({ ...user, password_hash: "", rol_id: rolId });
     } else {
       setForm(initialState);
     }
     setError("");
-  }, [user, open]);
+  }, [user, open, roles]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -69,7 +77,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-gray-900/30">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 relative">
         <button
           onClick={onClose}
@@ -121,7 +129,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
           <div className="flex gap-2">
             <select
               name="rol_id"
-              value={form.rol_id}
+              value={form.rol_id || ""}
               onChange={handleChange}
               className="w-1/2 px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
@@ -131,15 +139,26 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
                 <option key={rol.id} value={rol.id}>{rol.nombre}</option>
               ))}
             </select>
-            <input
-              name="password_hash"
-              value={form.password_hash}
-              onChange={handleChange}
-              placeholder={user ? "Nueva contraseña (opcional)" : "Contraseña"}
-              type="password"
-              className="w-1/2 px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required={!user}
-            />
+            <div className="w-1/2 flex items-center relative">
+              <input
+                name="password_hash"
+                value={form.password_hash}
+                onChange={handleChange}
+                placeholder={user ? "Nueva contraseña (opcional)" : "Contraseña"}
+                type={showPassword ? "text" : "password"}
+                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-10"
+                required={!user}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -152,22 +171,6 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
               />
               <span className="text-gray-700 dark:text-gray-200">Activo</span>
             </label>
-          </div>
-          <div className="flex gap-2">
-            <input
-              name="created_at"
-              value={form.created_at || ''}
-              disabled
-              className="w-1/2 px-3 py-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400"
-              placeholder="Creado"
-            />
-            <input
-              name="updated_at"
-              value={form.updated_at || ''}
-              disabled
-              className="w-1/2 px-3 py-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400"
-              placeholder="Actualizado"
-            />
           </div>
           <button
             type="submit"

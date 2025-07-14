@@ -76,9 +76,16 @@ const UserManagement = () => {
     }
   };
 
-  // Columnas de la tabla usuarios (todas las de la tabla)
+  // Columnas de la tabla usuarios (solo las requeridas)
   const columns = [
-    "id", "nombre", "usuario", "email", "telefono", "password_hash", "rol_id", "activo", "created_at", "updated_at"
+    { key: "nombre", label: "Nombre" },
+    { key: "usuario", label: "Usuario" },
+    { key: "email", label: "Correo" },
+    { key: "telefono", label: "Teléfono" },
+    { key: "password_hash", label: "Contraseña" },
+    { key: "rol_nombre", label: "Rol" },
+    { key: "created_at", label: "Creado" },
+    { key: "updated_at", label: "Editado" },
   ];
 
   return (
@@ -116,7 +123,7 @@ const UserManagement = () => {
               <thead>
                 <tr>
                   {columns.map(col => (
-                    <th key={col} className="px-4 py-2 capitalize">{col.replace("_", " ")}</th>
+                    <th key={col.key} className="px-4 py-2 capitalize">{col.label}</th>
                   ))}
                   <th className="px-4 py-2">Estado</th>
                   <th className="px-4 py-2">Acciones</th>
@@ -126,7 +133,7 @@ const UserManagement = () => {
                 {users.map((user) => (
                   <tr key={user.id} className="border-t border-gray-200 dark:border-gray-700">
                     {columns.map(col => (
-                      <td key={col} className="px-4 py-2 text-xs break-all">{String(user[col] ?? "-")}</td>
+                      <td key={col.key} className="px-4 py-2 text-xs break-all">{String(user[col.key] ?? "-")}</td>
                     ))}
                     <td className="px-4 py-2 text-center">
                       <button
