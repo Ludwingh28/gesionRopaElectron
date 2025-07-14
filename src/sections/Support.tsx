@@ -49,17 +49,21 @@ const Support = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] dark:bg-gray-900 text-gray-900 dark:text-white p-6">
-      <header className="text-3xl font-bold pb-2">Soporte</header>
-      <hr className="border-[#e19ea6] dark:border-[#d6a463] mb-6" />
-      <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-8">
-        {supportData.map((soporte, idx) => (
-          <div key={idx} className={idx === 0 ? 'mr-4' : 'ml-4'}>
-            <SupportCard {...soporte} />
-          </div>
-        ))}
-      </div>
-    </div>
+    <>
+      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2">
+        Soporte
+      </header>
+
+      <section className="mt-6">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+          {supportData.map((soporte, idx) => (
+            <div key={idx} className={idx === 0 ? 'mr-4' : 'ml-4'}>
+              <SupportCard {...soporte} />
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
   );
 };
 
