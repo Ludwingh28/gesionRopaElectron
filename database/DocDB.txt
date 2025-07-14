@@ -1,0 +1,310 @@
+# 📋 Sistema de Inventario de Ropa - Documentación Completa
+
+## 🎯 Cumplimiento de Requerimientos
+
+### ✅ Formas Normales (1FN, 2FN, 3FN)
+
+**Primera Forma Normal (1FN):**
+- ✅ Cada celda contiene un valor único
+- ✅ No hay grupos repetidos
+- ✅ Cada fila es única mediante claves primarias
+
+**Segunda Forma Normal (2FN):**
+- ✅ Cumple 1FN
+- ✅ Todos los atributos no clave dependen completamente de la clave primaria
+- ✅ Eliminadas dependencias parciales mediante separación en tablas especializadas
+
+**Tercera Forma Normal (3FN):**
+- ✅ Cumple 2FN  
+- ✅ No hay dependencias transitivas
+- ✅ Cada atributo no clave depende únicamente de la clave primaria
+
+### 🔐 Sistema de Usuarios y Roles
+
+- **Roles implementados:**
+  - `developer`: Acceso completo al sistema
+  - `admin`: Gestión y ventas
+  - `promotora`: Ventas con precio especial (+20%)
+
+### 🏷️ Generación de Códigos
+
+- **IDs automáticos:** 
+  - **Productos, SKUs y Ventas:** Comienzan en 1000
+  - **Usuarios:** Comienzan en 1 (secuencia normal)
+- **Códigos generados:**
+  - Productos: `PROD-001000`, `PROD-001001`, etc.
+  - SKUs: `PROD-001000-38-AZU` (Producto-Talla-Color)
+  - Ventas: `VTA-20250714-1000` (Fecha-Correlativo)
+  - Usuarios: 1, 2, 3, etc.
+
+### 💰 Sistema de Precios
+
+- **Precio base:** Para admin y otros roles
+- **Precio promotora:** Automáticamente +20% del precio base
+- **Cálculo:** Campo calculado `precio_promotora DECIMAL(10,2) AS (precio_venta_base * 1.20) STORED`
+
+## 🗄️ Estructura de la Base de Datos
+
+### Tablas Principales
+
+#### 👥 usuarios
+```sql
+- id (PK, AUTO_INCREMENT desde 1)
+- nombre, email, password_hash
+- rol_id (FK a roles)
+- activo, created_at, updated_at
+```
+
+#### 🎭 roles  
+```sql
+- id (PK)
+- nombre (developer/admin/promotora)
+- descripcion
+```
+
+#### 📦 productos
+```sql
+- id (PK, AUTO_INCREMENT desde 1000)
+- codigo_interno (generado automáticamente)
+- detalle, marca_id, categoria_id
+- costo_compra, precio_venta_base
+- precio_promotora (calculado automáticamente)
+```
+
+#### 📋 inventario
+```sql
+- id (PK, AUTO_INCREMENT desde 1000)
+- sku (generado automáticamente)
+- producto_id, talla_id, color_id
+- stock_actual, stock_minimo
+- UNIQUE(producto_id, talla_id, color_id)
+```
+
+#### 🛒 ventas
+```sql
+- id (PK, AUTO_INCREMENT desde 1000)
+- numero_venta (generado automáticamente)
+- usuario_id, cliente_info
+- totales calculados automáticamente
+```
+
+#### 📄 detalle_ventas
+```sql
+- venta_id, inventario_id
+- cantidad, precio_unitario
+- subtotal (calculado automáticamente)
+```
+
+### Tablas de Soporte
+- **marcas**: Catálogo de marcas
+- **colores**: Catálogo de colores  
+- **categorias**: Tipos de productos
+- **tallas**: Catálogo de tallas
+- **movimientos_inventario**: Trazabilidad completa
+
+## 🔧 Triggers Implementados
+
+### `tr_producto_codigo_interno`
+**Tipo:** AFTER INSERT  
+Genera automáticamente códigos de productos: `PROD-001000` después de la inserción
+
+### `tr_inventario_sku`
+**Tipo:** AFTER INSERT  
+Genera SKUs únicos: `PROD-001000-38-AZU` después de la inserción
+
+### `tr_venta_numero`
+**Tipo:** AFTER INSERT  
+Genera números de venta: `VTA-20250714-1000` después de la inserción
+
+### `tr_actualizar_stock_venta`
+**Tipo:** AFTER INSERT en detalle_ventas  
+- Actualiza stock automáticamente en ventas
+- Registra movimientos de inventario
+- Mantiene trazabilidad completa
+
+### `tr_calcular_total_venta`
+**Tipo:** AFTER INSERT en detalle_ventas  
+Calcula totales de ventas automáticamente
+
+## 📊 Procedimientos Almacenados
+
+### `sp_realizar_venta()`
+```sql
+CALL sp_realizar_venta(
+    usuario_id,
+    cliente_nombre,
+    cliente_documento, 
+    metodo_pago,
+    observaciones,
+    OUT venta_id,
+    OUT mensaje
+);
+```
+
+### `sp_agregar_articulo_venta()`
+```sql
+CALL sp_agregar_articulo_venta(
+    venta_id,
+    inventario_id,
+    cantidad,
+    OUT mensaje
+);
+```
+
+### `sp_reporte_ventas_promotora()`
+```sql
+CALL sp_reporte_ventas_promotora('2025-01-01', '2025-12-31');
+```
+**Retorna:** Ranking de promotoras por ventas totales
+
+### `sp_reporte_productos_mas_vendidos()`
+```sql
+CALL sp_reporte_productos_mas_vendidos('2025-01-01', '2025-12-31', 20);
+```
+**Retorna:** Top productos más vendidos  
+**Nota:** Usa PREPARE STATEMENT para manejar el parámetro LIMIT dinámicamente
+
+### `sp_productos_stock_bajo()`
+```sql
+CALL sp_productos_stock_bajo();
+```
+**Retorna:** Productos que necesitan reposición
+
+## 👁️ Vistas Principales
+
+### `v_inventario_completo`
+Vista consolidada con toda la información de inventario:
+- SKU, código, descripción completa
+- Marca, categoría, talla, color
+- Stock actual, mínimo, estado
+- Precios base y promotora
+
+### `v_ventas_detalle`
+Vista completa de ventas con información detallada:
+- Datos de venta y vendedor
+- Información completa del producto
+- Cantidades y precios aplicados
+
+## 📈 Reportes Disponibles
+
+### 1. Ranking de Promotoras
+```sql
+SELECT * FROM v_ventas_detalle 
+WHERE rol_vendedor = 'promotora'
+GROUP BY vendedor
+ORDER BY SUM(subtotal) DESC;
+```
+
+### 2. Productos Más Vendidos
+```sql
+CALL sp_reporte_productos_mas_vendidos(fecha_inicio, fecha_fin, limite);
+```
+
+### 3. Análisis por Marca
+```sql
+SELECT marca, COUNT(*) as productos, SUM(stock_actual) as stock_total
+FROM v_inventario_completo
+GROUP BY marca
+ORDER BY stock_total DESC;
+```
+
+### 4. Control de Stock
+```sql
+CALL sp_productos_stock_bajo();
+```
+
+## 🚀 Ejemplos de Uso
+
+### Realizar una Venta (Promotora)
+```sql
+-- 1. Crear venta
+CALL sp_realizar_venta(
+    1001, -- ID promotora María
+    'Cliente Ejemplo',
+    '12345678',
+    'efectivo',
+    'Venta normal',
+    @venta_id,
+    @mensaje
+);
+
+-- 2. Agregar productos (automáticamente aplica precio promotora +20%)
+CALL sp_agregar_articulo_venta(@venta_id, 1000, 2, @msg);
+CALL sp_agregar_articulo_venta(@venta_id, 1001, 1, @msg);
+```
+
+### Consultar Inventario con Stock Bajo
+```sql
+SELECT sku, detalle, marca, talla, color, stock_actual, stock_minimo
+FROM v_inventario_completo 
+WHERE estado_stock IN ('SIN STOCK', 'STOCK BAJO')
+ORDER BY stock_actual ASC;
+```
+
+### Reporte de Ventas del Mes
+```sql
+CALL sp_reporte_ventas_promotora(
+    DATE_FORMAT(NOW(), '%Y-%m-01'),
+    LAST_DAY(NOW())
+);
+```
+
+## 🔍 Características de Seguridad
+
+### Integridad Referencial
+- Todas las FK con `ON DELETE RESTRICT` para datos críticos
+- `ON DELETE CASCADE` solo en detalles de venta
+- Constraints únicos en campos críticos
+
+### Validaciones Automáticas
+- Stock no puede ser negativo (triggers)
+- Función `fn_verificar_stock_negativo()` para auditorías
+- Usuarios deben tener rol válido para vender
+
+### Trazabilidad Completa
+- Tabla `movimientos_inventario` registra todos los cambios
+- Timestamps automáticos en todas las tablas
+- Relación entre movimientos y ventas
+
+## 🔧 Mantenimiento
+
+### Limpieza Automática
+```sql
+-- Evento que ejecuta cada mes
+CREATE EVENT ev_limpieza_logs
+ON SCHEDULE EVERY 1 MONTH
+-- Elimina movimientos de inventario > 1 año
+```
+
+### Verificaciones de Integridad
+```sql
+SELECT fn_verificar_stock_negativo(); -- Verifica stocks
+```
+
+### Índices Optimizados
+- Índices en campos de búsqueda frecuente
+- Índices compuestos para consultas complejas
+- Índices en fechas para reportes
+
+## 📊 Métricas del Sistema
+
+**Tablas creadas:** 11 principales + soporte  
+**Triggers:** 5 automáticos  
+**Procedimientos:** 4 especializados  
+**Vistas:** 2 principales  
+**Índices:** 15+ optimizados  
+**Eventos:** 1 de mantenimiento  
+
+## 🎯 Beneficios Implementados
+
+✅ **Alta Fidelidad:** Replica exactamente el inventario original  
+✅ **Normalización Completa:** 1FN, 2FN, 3FN estrictamente cumplidas  
+✅ **Automatización Total:** Triggers manejan toda la lógica de negocio  
+✅ **Reportes Integrados:** Procedimientos listos para usar  
+✅ **Escalabilidad:** Diseño preparado para crecimiento  
+✅ **Seguridad:** Roles, validaciones y restricciones  
+✅ **Mantenimiento:** Limpieza automática y verificaciones  
+
+## 📞 Soporte
+
+Para consultas sobre implementación o extensiones del sistema, consultar la documentación técnica en los comentarios del código SQL.
