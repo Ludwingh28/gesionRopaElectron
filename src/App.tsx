@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
-import { Moon, Sun, ShoppingCart, Users, Home as HomeIcon, PackageCheck, Truck, PackageSearch, BarChart2, Headset } from "lucide-react";
+import { Moon, Sun, ShoppingCart, Users, Home as HomeIcon, PackageCheck, Truck, PackageSearch, BarChart2, Headset, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import Support from "./sections/Support";
 import Home from "./sections/Home";
 import Shop from "./sections/Shop";
@@ -13,6 +13,8 @@ import UserManagement from "./sections/UserManagement";
 // Componente Sidebar que puede usar useLocation
 const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: () => void }) => {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -21,122 +23,109 @@ const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: ()
     return location.pathname.startsWith(path);
   };
 
+  const navItems = [
+    { to: "/", icon: <HomeIcon size={20} />, label: "Inicio" },
+    { to: "/shop", icon: <ShoppingCart size={20} />, label: "Ventas" },
+    { to: "/stock", icon: <PackageCheck size={20} />, label: "Stock Disponible" },
+    { to: "/product-entry", icon: <Truck size={20} />, label: "Registrar Ingreso de Productos" },
+    { to: "/product-management", icon: <PackageSearch size={20} />, label: "Gestión de Productos" },
+    { to: "/reports", icon: <BarChart2 size={20} />, label: "Reportes" },
+    { to: "/user-management", icon: <Users size={20} />, label: "Gestión de Usuarios" },
+    { to: "/soporte", icon: <Headset size={20} />, label: "Soporte" },
+  ];
+
+  // Sidebar para desktop
   return (
-    <aside className="w-64 bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 hidden md:block">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Lupita Store</h2>
-        <button onClick={toggleTheme} className="hover:scale-110 transition cursor-pointer">
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </div>
-      <nav className="space-y-2">
-        <Link 
-          to="/" 
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/") 
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium" 
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <HomeIcon size={20} />
-          <span>Inicio</span>
-        </Link>
+    <>
+      {/* Botón flotante para abrir sidebar en mobile */}
+      <button
+        className="fixed top-4 left-4 z-50 md:hidden bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg border border-gray-200 dark:border-gray-700"
+        onClick={() => setMobileOpen(true)}
+        style={{ display: mobileOpen ? 'none' : 'block' }}
+        aria-label="Abrir menú"
+      >
+        <ChevronRight size={24} />
+      </button>
 
-        <Link
-          to="/shop"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/shop")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <ShoppingCart size={20} />
-          <span>Ventas</span>
-        </Link>
-
-        <Link
-          to="/stock"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/stock")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <PackageCheck size={20} />
-          <span>Stock Disponible</span>
-        </Link>
-
-        <Link
-          to="/product-entry"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/product-entry")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <Truck size={20} />
-          <span>Registrar Ingreso de Productos</span>
-        </Link>
-
-        <Link
-          to="/product-management"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/product-management")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <PackageSearch size={20} />
-          <span>Gestión de Productos</span>
-        </Link>
-
-        <Link
-          to="/reports"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/reports")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <BarChart2 size={20} />
-          <span>Reportes</span>
-        </Link>
-
-        <Link
-          to="/user-management"
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/user-management")
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium"
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <Users size={20} />
-          <span>Gestión de Usuarios</span>
-        </Link>
-
-        <Link 
-          to="/soporte" 
-          className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-            isActive("/soporte") 
-              ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium" 
-              : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"
-          }`}
-        >
-          <Headset size={20} />
-          <span>Soporte</span>
-        </Link>
-
-        {/* Botón de cerrar sesión */}
-        <button
-          onClick={() => {
-            window.location.href = "/login";
-          }}
-          className="w-full flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors mt-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 font-medium justify-center"
-        >
-          <span>Cerrar sesión</span>
-        </button>
-      </nav>
-    </aside>
+      {/* Sidebar overlay para mobile */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 dark:bg-black/60 transition-opacity ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} md:hidden`}
+        onClick={() => setMobileOpen(false)}
+      />
+      <aside
+        className={`fixed md:static top-0 left-0 z-50 h-full md:h-auto bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 flex flex-col transition-all duration-300
+          ${collapsed ? 'w-20' : 'w-64'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0
+          shadow-lg md:shadow-none
+        `}
+        style={{ minHeight: '100vh' }}
+      >
+        <div className={`flex items-center justify-between mb-6 ${collapsed ? 'justify-center' : ''}`}>
+          {!collapsed && <h2 className="text-2xl font-bold">Lupita Store</h2>}
+          <div className="flex items-center gap-2">
+            <button onClick={toggleTheme} className="hover:scale-110 transition cursor-pointer">
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            {/* Botón para colapsar/expandir sidebar en desktop */}
+            <button
+              className="hidden md:inline-flex items-center justify-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
+              onClick={() => setCollapsed((v) => !v)}
+              aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            >
+              {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
+            {/* Botón para cerrar sidebar en mobile */}
+            <button
+              className="md:hidden inline-flex items-center justify-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Cerrar menú"
+              style={{ display: mobileOpen ? 'inline-flex' : 'none' }}
+            >
+              <ChevronLeft size={24} />
+            </button>
+          </div>
+        </div>
+        <nav className="space-y-2 flex-1">
+          {navItems.map(({ to, icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`group flex items-center ${collapsed ? 'justify-center' : ''} space-x-2 p-2 rounded cursor-pointer transition-colors relative
+                ${isActive(to)
+                  ? 'bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium'
+                  : 'hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]'}
+              `}
+            >
+              {icon}
+              {!collapsed && <span>{label}</span>}
+              {/* Tooltip solo cuando está colapsado */}
+              {collapsed && (
+                <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                  {label}
+                </span>
+              )}
+            </Link>
+          ))}
+          {/* Botón de cerrar sesión */}
+          <button
+            onClick={() => {
+              window.location.href = "/login";
+            }}
+            className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} space-x-2 p-2 rounded cursor-pointer transition-colors mt-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 font-medium relative`}
+            type="button"
+          >
+            <LogOut size={20} />
+            {!collapsed && <span>Cerrar sesión</span>}
+            {collapsed && (
+              <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                Cerrar sesión
+              </span>
+            )}
+          </button>
+        </nav>
+      </aside>
+    </>
   );
 };
 
