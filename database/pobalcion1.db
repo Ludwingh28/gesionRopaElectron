@@ -1,0 +1,943 @@
+-- =====================================================
+-- PRODUCTOS E INVENTARIO REAL DEL DOCUMENTO PDF
+-- Extraídos directamente del inventario proporcionado
+-- =====================================================
+
+USE sistema_inventario;
+
+-- =====================================================
+-- PRODUCTOS PISOM
+-- =====================================================
+
+-- SHORT JEANS CORTO, BLANCO CASUAL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS CORTO, BLANCO CASUAL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 140.00, 220.00);
+
+-- SHORT CORTO JEANS ALICRADO- DESGASTE EN PIERNAS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT CORTO JEANS ALICRADO- DESGASTE EN PIERNAS', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 80.00, 130.00);
+
+-- SHORT JEANS ANCHO ALICRADO, DESFLECADO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS ANCHO ALICRADO, DESFLECADO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 160.00, 230.00);
+
+-- BERMUDA JEANS CORTO- 2 BOTONES EN CINTURA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS CORTO- 2 BOTONES EN CINTURA', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA JEANS CON ALGUNOS DESGASTES, AZUL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS CON ALGUNOS DESGASTES, AZUL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- SHORT JEANS CORTOS DESFLECADOS EN PIERNAS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS CORTOS DESFLECADOS EN PIERNAS', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 140.00, 200.00);
+
+-- BERMUDA MASCULINA JEANS ALICRADO, AZUL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA MASCULINA JEANS ALICRADO, AZUL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA JEANS MASCULINA ALICRADO- DESGASTE
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS MASCULINA ALICRADO- DESGASTE', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA JEANS MASCULINA ALICRADO- GASPEADO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS MASCULINA ALICRADO- GASPEADO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- SHORT JEANS CORTO- DOBLES EN PIERNAS, CELESTE
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS CORTO- DOBLES EN PIERNAS, CELESTE', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 265.00);
+
+-- SHORTO JEANS CORTO- RIGIDO- CAQUI
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORTO JEANS CORTO- RIGIDO- CAQUI', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- SHORT JEANS CORTO- ALICRADO- AZUL OSCURO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS CORTO- ALICRADO- AZUL OSCURO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 150.00, 200.00);
+
+-- SHORT MEDIA PIERNA- DOBLADILLO EN PIERNA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT MEDIA PIERNA- DOBLADILLO EN PIERNA', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- SHORT JEANS -NEGRO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS -NEGRO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- SHORT CON PINZAS ADELANTE Y 5 BOTONES -NEGRO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT CON PINZAS ADELANTE Y 5 BOTONES -NEGRO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- CHALECO JEANS CON PIEL DE OSO, AZUL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CHALECO JEANS CON PIEL DE OSO, AZUL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'CHAQUETA'), 
+ 210.00, 390.00);
+
+-- BERMUDA CORTA, NEGRA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA CORTA, NEGRA', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, BOTA ANCHA, AZUL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA ANCHA, AZUL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, BOTA RECTA, NEGRO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA RECTA, NEGRO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, BOTA RECTA CON DESGASTE
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA RECTA CON DESGASTE', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, BOTA RECTA, C/PINZAS LATERALES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA RECTA, C/PINZAS LATERALES', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 450.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- 2 BOTONES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- 2 BOTONES', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, 2 PINZAS ATRÁS Y DET. PINZA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, 2 PINZAS ATRÁS Y DET. PINZA', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS, BOTA RECTA, PLOMO JASPEADO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA RECTA, PLOMO JASPEADO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON TELA RIGIDA, BOTA ANCHA, ANIMAL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON TELA RIGIDA, BOTA ANCHA, ANIMAL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 440.00);
+
+-- PANTALON TELA, BOTA ANCHA, CAMEL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON TELA, BOTA ANCHA, CAMEL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 230.00, 380.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- NEGRO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- NEGRO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 170.00, 270.00);
+
+-- PANTALON JEANS ALICRADO -JASPEADO EN PIERNAS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO -JASPEADO EN PIERNAS', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 380.00);
+
+-- PANTALON JEANS CHUPIN- DESGASTE BOLSILLO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN- DESGASTE BOLSILLO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS - JASPEADO EN PIERNAS Y ATRÁS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS - JASPEADO EN PIERNAS Y ATRÁS', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS CHUPIN ALICRADO- DESGASTES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN ALICRADO- DESGASTES', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 370.00);
+
+-- PANTALON JEANS CHUPIN- DESFLECADO EN TOBILLO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN- DESFLECADO EN TOBILLO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 290.00);
+
+-- PANTALON JEANS DE HOMBRE SEMI RIGIDO- JASPEADO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS DE HOMBRE SEMI RIGIDO- JASPEADO', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO DE HOMBRE- AZUL
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO DE HOMBRE- AZUL', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS SEMI ALICRADO DE HOMBRE
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS SEMI ALICRADO DE HOMBRE', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON LONA SEMI LICRA DE HOMBRE- BOTA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON LONA SEMI LICRA DE HOMBRE- BOTA', 
+ (SELECT id FROM marcas WHERE nombre = 'PISOM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- =====================================================
+-- PRODUCTOS SAMURAI
+-- =====================================================
+
+-- PANTALON JEANS SEMI ALICRADO DE HOMBRE SAMURAI
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS SEMI ALICRADO DE HOMBRE SAMURAI', 
+ (SELECT id FROM marcas WHERE nombre = 'SAMURAI'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 480.00);
+
+-- PANTALON JEANS DE HOMBRE -CON ELASTICO SAMURAI
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS DE HOMBRE -CON ELASTICO SAMURAI', 
+ (SELECT id FROM marcas WHERE nombre = 'SAMURAI'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 480.00);
+
+-- PANTALON DE VESTIR DE HOMBRE -BOTA SEMI SAMURAI
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE VESTIR DE HOMBRE -BOTA SEMI SAMURAI', 
+ (SELECT id FROM marcas WHERE nombre = 'SAMURAI'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 350.00);
+
+-- =====================================================
+-- PRODUCTOS EDWIN
+-- =====================================================
+
+-- PANTALON JEANS DE HOMBRE SEMI ALICRADO EDWIN
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS DE HOMBRE SEMI ALICRADO EDWIN', 
+ (SELECT id FROM marcas WHERE nombre = 'EDWIN'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 480.00);
+
+-- PANTALON DE VESTIR ALICRADO- BOTA SEMI RECTA EDWIN
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE VESTIR ALICRADO- BOTA SEMI RECTA EDWIN', 
+ (SELECT id FROM marcas WHERE nombre = 'EDWIN'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 480.00);
+
+-- PANTALON LONA ALICRADO- ELASTICO EN CINTURA EDWIN
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON LONA ALICRADO- ELASTICO EN CINTURA EDWIN', 
+ (SELECT id FROM marcas WHERE nombre = 'EDWIN'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 480.00);
+
+-- =====================================================
+-- PRODUCTOS LEVI'S
+-- =====================================================
+
+-- PANTALON JEANS DE HOMBRE CLASICO- BOTA LEVI'S
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS DE HOMBRE CLASICO- BOTA LEVI\'S', 
+ (SELECT id FROM marcas WHERE nombre = 'LEVI\'S'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 150.00, 200.00);
+
+-- =====================================================
+-- PRODUCTOS ZAMANY
+-- =====================================================
+
+-- PANTALON JEANS ALICRADO DE HOMBRE- BOTA ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO DE HOMBRE- BOTA ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 350.00);
+
+-- PANTALON DE HOMBRE CLASICO- BOTA RECTA ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE HOMBRE CLASICO- BOTA RECTA ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 350.00);
+
+-- PANTALON DE HOMBRE -BOTA SEMI RECTA- CAQUI ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE HOMBRE -BOTA SEMI RECTA- CAQUI ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 240.00, 350.00);
+
+-- BERMUDA JEANS DE HOMBRE SEMI ALICRADO ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS DE HOMBRE SEMI ALICRADO ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA ALICRADO DE HOMBRE - VERDE AGUA ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA ALICRADO DE HOMBRE - VERDE AGUA ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA LONA SUAVE DE HOMBRE- CON RELIEVES ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA LONA SUAVE DE HOMBRE- CON RELIEVES ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- BERMUDA LONA SUAVE DE HOMBRE- NEGRO GRAFITO ZAMANY
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA LONA SUAVE DE HOMBRE- NEGRO GRAFITO ZAMANY', 
+ (SELECT id FROM marcas WHERE nombre = 'ZAMANY'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- =====================================================
+-- PRODUCTOS VOG
+-- =====================================================
+
+-- CAMISA JEANS DET.DE A 3 PLIEGUES ADELANTE VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CAMISA JEANS DET.DE A 3 PLIEGUES ADELANTE VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'CAMISA'), 
+ 120.00, 180.00);
+
+-- SHORT JEANS ALICRADO, DETALLE CINTURA Y BOLSILLOS VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS ALICRADO, DETALLE CINTURA Y BOLSILLOS VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- SHORT JEANS CORTO ALICRADO- DESFLECADO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS CORTO ALICRADO- DESFLECADO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 250.00);
+
+-- CHAQUETA CORTA JEANS, MANGA LARGA, CAFÉ VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CHAQUETA CORTA JEANS, MANGA LARGA, CAFÉ VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'CHAQUETA'), 
+ 180.00, 250.00);
+
+-- PANTALON JEANS- BOTA ANCHA ALICRADO, AZUL VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS- BOTA ANCHA ALICRADO, AZUL VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS- JASPEADO EN PIERNAS- BOTA VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS- JASPEADO EN PIERNAS- BOTA VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO- JASPEADO EN PIERNAS VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- JASPEADO EN PIERNAS VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO, BOTA ANCHA, JASPEADO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, BOTA ANCHA, JASPEADO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO, BOTA ANCHA, ROTO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, BOTA ANCHA, ROTO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 340.00);
+
+-- PANTALON JEANS ALICRADO -ROTO EN RODILLAS VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO -ROTO EN RODILLAS VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 340.00);
+
+-- PANTALON JEANS LISO- TALLE ALTO- BOTA ANCHA VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS LISO- TALLE ALTO- BOTA ANCHA VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 340.00);
+
+-- PANTALON JEANS ALICRADO, BOTA RECTA, DESGASTE VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, BOTA RECTA, DESGASTE VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 195.00, 290.00);
+
+-- PANTALON JEANS ALICRADO, BOTA ANCHA, PINZA VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, BOTA ANCHA, PINZA VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 195.00, 290.00);
+
+-- PANTALON JEANS ALICRADO, BOTA RECTA, AZUL VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, BOTA RECTA, AZUL VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 195.00, 290.00);
+
+-- PANTALON BOTA ANCHA ALICRADO, ANIMAL PRINT VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON BOTA ANCHA ALICRADO, ANIMAL PRINT VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 395.00);
+
+-- PANTALON JEANS ALICRACO, NEGRO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRACO, NEGRO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 320.00);
+
+-- PANTALON JEANS ALICRADO, CHUPIN- NEGRO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, CHUPIN- NEGRO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 320.00);
+
+-- PANTALON JEANS ALICRADO- CHUPIN- BLANCO VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- CHUPIN- BLANCO VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 320.00);
+
+-- PANTALON CHUPIN JEANS ALICRADO- CINTO JEANS VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON CHUPIN JEANS ALICRADO- CINTO JEANS VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 320.00);
+
+-- PANTALON JEANS ALICRADO, CHUPIN- CON FAJA VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, CHUPIN- CON FAJA VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO- BOTA CAMPANA- VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- BOTA CAMPANA- VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- PANTALON JEANS ALICRADO- PINZA ATRÁS- BOTA VOG
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- PINZA ATRÁS- BOTA VOG', 
+ (SELECT id FROM marcas WHERE nombre = 'VOG'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 350.00);
+
+-- =====================================================
+-- PRODUCTOS KALUA
+-- =====================================================
+
+-- SHORT CORTO JEANS ALICRADO,DETALLE DOBLES KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT CORTO JEANS ALICRADO,DETALLE DOBLES KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 180.00, 295.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- NEGRO KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- NEGRO KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 195.00, 310.00);
+
+-- PANTALON JEANS CHUPIN- TIRO ALTO- BLANCO KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN- TIRO ALTO- BLANCO KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 295.00);
+
+-- PANTALON JEANS CHUPIN- 3 BOTONES EN TOBILLO KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN- 3 BOTONES EN TOBILLO KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 295.00);
+
+-- PANTALON JEANS CHUPIN- TIRO ALTO CON PINZAS KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CHUPIN- TIRO ALTO CON PINZAS KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 295.00);
+
+-- PANTALON JEANS CLARO, DESGASTADO EN BOLSILLO KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CLARO, DESGASTADO EN BOLSILLO KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 310.00);
+
+-- PANTALON JEANS JASPEADO, BOTA RECTA, CON KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS JASPEADO, BOTA RECTA, CON KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 310.00);
+
+-- PANTALON JEANS, BOTA ANCHA CON BOTONES KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA ANCHA CON BOTONES KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 310.00);
+
+-- PANTALON DE LONA ALICRADO LISO, PLOMO HUMO KALUA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE LONA ALICRADO LISO, PLOMO HUMO KALUA', 
+ (SELECT id FROM marcas WHERE nombre = 'KALUA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 310.00);
+
+-- =====================================================
+-- PRODUCTOS KANCAN LOS ANGELES
+-- =====================================================
+
+-- CHAQUETA JEANS, DESFLECADO EN CUELLO, KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CHAQUETA JEANS, DESFLECADO EN CUELLO, KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'CHAQUETA'), 
+ 570.00, 850.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- JASPEADO KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- JASPEADO KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 450.00, 650.00);
+
+-- PANTALON ALICRADO CHUPIN LISO- NEGRO KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON ALICRADO CHUPIN LISO- NEGRO KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 450.00, 650.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- ROTO DESHILACHADO KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- ROTO DESHILACHADO KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 450.00, 650.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- TODO JASPEADO KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- TODO JASPEADO KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 450.00, 650.00);
+
+-- PANTALON JEANS ALICRADO CHUPIN- DESGASTE KANCAN LOS ANGELES
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- DESGASTE KANCAN LOS ANGELES', 
+ (SELECT id FROM marcas WHERE nombre = 'KANCAN LOS ANGELES'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 450.00, 650.00);
+
+-- =====================================================
+-- PRODUCTOS OTRAS MARCAS
+-- =====================================================
+
+-- POPSUGAR
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS DESFLECADO DETALLE CORAZONES POPSUGAR', 
+ (SELECT id FROM marcas WHERE nombre = 'POPSUGAR'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON CON BRILLOS HORIZONTALES ADELANTE POPSUGAR', 
+ (SELECT id FROM marcas WHERE nombre = 'POPSUGAR'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 250.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA RECTA, CON PINZA ATRÁS POPSUGAR', 
+ (SELECT id FROM marcas WHERE nombre = 'POPSUGAR'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 290.00);
+
+-- FUZARKA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('BERMUDA JEANS CORTA ALICRADO DE NIÑO, CON FUZARKA', 
+ (SELECT id FROM marcas WHERE nombre = 'FUZARKA'), 
+ (SELECT id FROM categorias WHERE nombre = 'BERMUDA'), 
+ 180.00, 250.00);
+
+-- OZZO JEANS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('TOP JEANS, CORDONES LATELARES, AZUL CLARO OZZO JEANS', 
+ (SELECT id FROM marcas WHERE nombre = 'OZZO JEANS'), 
+ (SELECT id FROM categorias WHERE nombre = 'CAMISA'), 
+ 200.00, 280.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CHAQUETA JEANS, DET. DESFLECADO HOMBROS OZZO JEANS', 
+ (SELECT id FROM marcas WHERE nombre = 'OZZO JEANS'), 
+ (SELECT id FROM categorias WHERE nombre = 'CHAQUETA'), 
+ 220.00, 320.00);
+
+-- COZZI
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CAMISA JEANS, MANGA LARGA, AZUL COZZI', 
+ (SELECT id FROM marcas WHERE nombre = 'COZZI'), 
+ (SELECT id FROM categorias WHERE nombre = 'CAMISA'), 
+ 150.00, 220.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ELASTISADA CHUPIN, AZUL COZZI', 
+ (SELECT id FROM marcas WHERE nombre = 'COZZI'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 250.00);
+
+-- CAMBRIDGE POLO CLUB
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CAMISA DE VARON, MANGA LARGA, AZUL CAMBRIDGE POLO CLUB', 
+ (SELECT id FROM marcas WHERE nombre = 'CAMBRIDGE POLO CLUB'), 
+ (SELECT id FROM categorias WHERE nombre = 'CAMISA'), 
+ 200.00, 300.00);
+
+-- SHEKINÁ
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('FALDA LARGA CON BOTONES EN FRENTE, DET. SHEKINÁ', 
+ (SELECT id FROM marcas WHERE nombre = 'SHEKINÁ'), 
+ (SELECT id FROM categorias WHERE nombre = 'FALDA'), 
+ 250.00, 350.00);
+
+-- VIA ONIX
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, CINTURA ALTA C/2 BOTONES VIA ONIX', 
+ (SELECT id FROM marcas WHERE nombre = 'VIA ONIX'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 100.00, 150.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS RIGIDO- 4 BOTONES DE COLORES VIA ONIX', 
+ (SELECT id FROM marcas WHERE nombre = 'VIA ONIX'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 110.00, 160.00);
+
+-- MOST WANTED
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS LICRA, DET. CINTO CON BRILLOS MOST WANTED', 
+ (SELECT id FROM marcas WHERE nombre = 'MOST WANTED'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 250.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON CHUPIN JEANS ALICRADO, CAQUI MOST WANTED', 
+ (SELECT id FROM marcas WHERE nombre = 'MOST WANTED'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 220.00, 320.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON CHUPIN JEANS ALICRADO- DESILACHADO MOST WANTED', 
+ (SELECT id FROM marcas WHERE nombre = 'MOST WANTED'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 180.00, 250.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- ELASTIZADO EN TOBILLO MST WANTED', 
+ (SELECT id FROM marcas WHERE nombre = 'MOST WANTED'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 150.00, 210.00);
+
+-- BONGO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO, ROTO UN COSTADO BONGO', 
+ (SELECT id FROM marcas WHERE nombre = 'BONGO'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 160.00, 230.00);
+
+-- REVANCHE
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, CLASICO, DET.CINTO DE JEANS REVANCHE', 
+ (SELECT id FROM marcas WHERE nombre = 'REVANCHE'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 200.00, 280.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS, BOTA ANGOSTA, AZUL MARINO REVANCHE', 
+ (SELECT id FROM marcas WHERE nombre = 'REVANCHE'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 160.00, 230.00);
+
+-- LOOPPER
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- ELASTICO EN CINTURA LOOPPER', 
+ (SELECT id FROM marcas WHERE nombre = 'LOOPPER'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 280.00, 390.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON DE LONA ALICRADO LISO- ELASTICO LOOPPER', 
+ (SELECT id FROM marcas WHERE nombre = 'LOOPPER'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 280.00, 390.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- CON ELASTICO LOOPPER', 
+ (SELECT id FROM marcas WHERE nombre = 'LOOPPER'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 280.00, 390.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CAPRI JEANS ALICRADO- ELASTISADO EN CINTURA LOOPPER', 
+ (SELECT id FROM marcas WHERE nombre = 'LOOPPER'), 
+ (SELECT id FROM categorias WHERE nombre = 'CAPRI'), 
+ 250.00, 350.00);
+
+-- KIDS DENIM BOYS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS CLASICO DE NIÑOS CON ELASTICO KIDS DENIM BOYS', 
+ (SELECT id FROM marcas WHERE nombre = 'KIDS DENIM BOYS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 100.00, 140.00);
+
+-- AK DENIM
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS- BOTA ANCHA CON ABERTURA AK DENIM', 
+ (SELECT id FROM marcas WHERE nombre = 'AK DENIM'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 130.00, 190.00);
+
+-- DENIM LOVERS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- PIEDRERIA BRILLOSA DENIM LOVERS', 
+ (SELECT id FROM marcas WHERE nombre = 'DENIM LOVERS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 150.00, 210.00);
+
+-- LEGIAO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN, 2 BOTONES LEGIAO', 
+ (SELECT id FROM marcas WHERE nombre = 'LEGIAO'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 200.00, 290.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- TALLE ALTO- DESGASTE LEGIAO', 
+ (SELECT id FROM marcas WHERE nombre = 'LEGIAO'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 250.00, 350.00);
+
+-- DARLOOK
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO CHUPIN- PLOMO DARLOOK', 
+ (SELECT id FROM marcas WHERE nombre = 'DARLOOK'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 250.00, 350.00);
+
+-- W.O.B.
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PATALON LISO - TACHAS EN BOLSILLOS ATRÁS- W.O.B.', 
+ (SELECT id FROM marcas WHERE nombre = 'W.O.B.'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 250.00, 350.00);
+
+-- BEM BOLADO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALONA BOTA ANCHA, 2 BOTONES EN CINTURA BEM BOLADO', 
+ (SELECT id FROM marcas WHERE nombre = 'BEM BOLADO'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 200.00, 275.00);
+
+-- UNDER GROUND
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- ELASTIZADO EN CINTURA UNDER GROUND', 
+ (SELECT id FROM marcas WHERE nombre = 'UNDER GROUND'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 230.00, 320.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS LISA, BOTA RECTA, NEGRO UNDER GROUND', 
+ (SELECT id FROM marcas WHERE nombre = 'UNDER GROUND'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 230.00, 320.00);
+
+-- LARANJA LIMA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS RIGIDO CORTO- CELESTE LARANJA LIMA', 
+ (SELECT id FROM marcas WHERE nombre = 'LARANJA LIMA'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 120.00, 170.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('SHORT JEANS RIGIDO CORTO- CON DESGASTE Y LARANJA LIMA', 
+ (SELECT id FROM marcas WHERE nombre = 'LARANJA LIMA'), 
+ (SELECT id FROM categorias WHERE nombre = 'SHORT'), 
+ 120.00, 170.00);
+
+-- FERIÑA
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS RIGIDO-BOTA ANCHA -BOLSILLO FERIÑA', 
+ (SELECT id FROM marcas WHERE nombre = 'FERIÑA'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 150.00, 210.00);
+
+-- AMORE MIO
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO-BOTA RECTA- CAQUI AMORE MIO', 
+ (SELECT id FROM marcas WHERE nombre = 'AMORE MIO'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 230.00, 320.00);
+
+-- FOR GIRLS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- BICOLOR CELESTE FOR GIRLS', 
+ (SELECT id FROM marcas WHERE nombre = 'FOR GIRLS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 130.00, 190.00);
+
+-- FOXI JEANS
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- TALLE ALTO- BOTA FOXI JEANS', 
+ (SELECT id FROM marcas WHERE nombre = 'FOXI JEANS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 270.00, 380.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- JASPEADO EN PIERNAS FOXI JEANS', 
+ (SELECT id FROM marcas WHERE nombre = 'FOXI JEANS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 270.00, 380.00);
+
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('PANTALON JEANS ALICRADO- DET. BOTON FORMA FOXI JEANS', 
+ (SELECT id FROM marcas WHERE nombre = 'FOXI JEANS'), 
+ (SELECT id FROM categorias WHERE nombre = 'PANTALON'), 
+ 210.00, 300.00);
+
+-- DROMEDAR
+INSERT INTO productos (detalle, marca_id, categoria_id, costo_compra, precio_venta_base) VALUES 
+('CHAQUETA JEANS ALICRADO- BOLSILLOS DELANTEROS DROMEDAR', 
+ (SELECT id FROM marcas WHERE nombre = 'DROMEDAR'), 
+ (SELECT id FROM categorias WHERE nombre = 'CHAQUETA'), 
+ 170.00, 240.00);
+
+-- =====================================================
+-- MENSAJE DE FINALIZACIÓN
+-- =====================================================
+
+SELECT 
+    'PRODUCTOS INSERTADOS EXITOSAMENTE' AS status,
+    COUNT(*) AS total_productos_insertados
+FROM productos
+WHERE id >= 1000;
+
+SELECT 
+    'CÓDIGOS AUTOMÁTICOS GENERADOS' AS status,
+    'Ejecutar triggers automáticamente' AS accion,
+    'Revisar códigos generados en productos' AS verificacion;

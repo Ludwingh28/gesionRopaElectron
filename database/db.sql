@@ -24,7 +24,9 @@ CREATE TABLE roles (
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    usuario VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(150) NOT NULL UNIQUE,
+    telefono VARCHAR(20),
     password_hash VARCHAR(255) NOT NULL,
     rol_id INT NOT NULL,
     activo BOOLEAN DEFAULT TRUE,
@@ -248,8 +250,8 @@ INSERT INTO tallas (nombre, orden_display) VALUES
 ('15./16', 56), ('19./20', 57), ('21./22', 58);
 
 -- Usuario administrador por defecto
-INSERT INTO usuarios (nombre, email, password_hash, rol_id) VALUES 
-('Administrador', 'admin@sistema.com', '$2y$10$example_hash', 
+INSERT INTO usuarios (nombre, usuario, email, telefono, password_hash, rol_id) VALUES 
+('Administrador', 'admin', 'admin@sistema.com', '+1234567890', '$2y$10$example_hash', 
  (SELECT id FROM roles WHERE nombre = 'admin'));
 
 -- =====================================================
@@ -259,13 +261,20 @@ INSERT INTO usuarios (nombre, email, password_hash, rol_id) VALUES
 -- Trigger para generar código interno de productos
 DELIMITER //
 CREATE TRIGGER tr_producto_codigo_interno 
-AFTER INSERT ON productos
+BEFORE INSERT ON productos
 FOR EACH ROW
 BEGIN
+    -- El NEW.id no está disponible en BEFORE INSERT, usamos un método alternativo
+    DECLARE next_id INT;
+    
+    -- Obtener el próximo ID que se asignará
+    SELECT AUTO_INCREMENT INTO next_id 
+    FROM information_schema.TABLES 
+    WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'productos';
+    
     IF NEW.codigo_interno IS NULL OR NEW.codigo_interno = '' THEN
-        UPDATE productos 
-        SET codigo_interno = CONCAT('PROD-', LPAD(NEW.id, 6, '0'))
-        WHERE id = NEW.id;
+        SET NEW.codigo_interno = CONCAT('PROD-', LPAD(next_id, 6, '0'));
     END IF;
 END //
 DELIMITER ;
@@ -273,12 +282,19 @@ DELIMITER ;
 -- Trigger para generar SKU de inventario
 DELIMITER //
 CREATE TRIGGER tr_inventario_sku 
-AFTER INSERT ON inventario
+BEFORE INSERT ON inventario
 FOR EACH ROW
 BEGIN
     DECLARE producto_codigo VARCHAR(20);
     DECLARE talla_nombre VARCHAR(20);
     DECLARE color_nombre VARCHAR(50);
+    DECLARE next_id INT;
+    
+    -- Obtener el próximo ID que se asignará
+    SELECT AUTO_INCREMENT INTO next_id 
+    FROM information_schema.TABLES 
+    WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'inventario';
     
     SELECT COALESCE(codigo_interno, CONCAT('PROD-', LPAD(id, 6, '0'))) INTO producto_codigo 
     FROM productos WHERE id = NEW.producto_id;
@@ -289,25 +305,36 @@ BEGIN
     SELECT nombre INTO color_nombre 
     FROM colores WHERE id = NEW.color_id;
     
-    UPDATE inventario 
-    SET sku = CONCAT(producto_codigo, '-', 
-                    REPLACE(REPLACE(talla_nombre, '/', ''), '.', ''), '-', 
-                    SUBSTRING(UPPER(color_nombre), 1, 3))
-    WHERE id = NEW.id;
+    IF NEW.sku IS NULL OR NEW.sku = '' THEN
+        SET NEW.sku = CONCAT(
+            COALESCE(producto_codigo, 'PROD-000000'), '-', 
+            REPLACE(REPLACE(COALESCE(talla_nombre, 'ST'), '/', ''), '.', ''), '-', 
+            SUBSTRING(UPPER(COALESCE(color_nombre, 'STD')), 1, 3)
+        );
+    END IF;
 END //
 DELIMITER ;
 
 -- Trigger para generar número de venta
 DELIMITER //
 CREATE TRIGGER tr_venta_numero 
-AFTER INSERT ON ventas
+BEFORE INSERT ON ventas
 FOR EACH ROW
 BEGIN
     DECLARE fecha_str VARCHAR(8);
-    SET fecha_str = DATE_FORMAT(NEW.fecha_venta, '%Y%m%d');
-    UPDATE ventas 
-    SET numero_venta = CONCAT('VTA-', fecha_str, '-', LPAD(NEW.id, 4, '0'))
-    WHERE id = NEW.id;
+    DECLARE next_id INT;
+    
+    -- Obtener el próximo ID que se asignará
+    SELECT AUTO_INCREMENT INTO next_id 
+    FROM information_schema.TABLES 
+    WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'ventas';
+    
+    SET fecha_str = DATE_FORMAT(COALESCE(NEW.fecha_venta, NOW()), '%Y%m%d');
+    
+    IF NEW.numero_venta IS NULL OR NEW.numero_venta = '' THEN
+        SET NEW.numero_venta = CONCAT('VTA-', fecha_str, '-', LPAD(next_id, 4, '0'));
+    END IF;
 END //
 DELIMITER ;
 
