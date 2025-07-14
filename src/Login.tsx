@@ -5,7 +5,7 @@ import App from "./App";
 declare global {
   interface Window {
     electronAPI: {
-      authenticateUser: (username: string, password: string) => Promise<boolean>;
+      authenticateUser: (username: string, password: string) => Promise<{ success: boolean; reason?: string }>;
       // Aquí podrías añadir un método para obtener datos del usuario autenticado si lo necesitas
       // getAuthenticatedUserData: () => Promise<any>;
     };
@@ -57,19 +57,19 @@ const Login = () => {
 
     try {
       // Llama a la función de autenticación del proceso principal de Electron
-      const isAuthenticated = await window.electronAPI.authenticateUser(username, password);
+      const response = await window.electronAPI.authenticateUser(username, password);
 
-      if (isAuthenticated) {
+      if (response.success) {
         setSuccessMessage("¡Inicio de sesión exitoso!");
         setAuthenticatedUser(username); // Guarda el nombre de usuario autenticado
-        // Aquí podrías redirigir al usuario a la página principal de la aplicación,
-        // o cambiar el estado global para mostrar el contenido de la aplicación.
-        // Ejemplo: navigate('/shop'); o dispatch({ type: 'LOGIN_SUCCESS' });
-        console.log("Usuario autenticado con éxito:", username);
+        setLoading(false);
+      } else if (response.reason === "inactive") {
+        setErrorMessage("Usuario inactivo. Por favor, contacte al administrador.");
+        setAuthenticatedUser(null);
         setLoading(false);
       } else {
         setErrorMessage("Usuario o contraseña incorrectos.");
-        setAuthenticatedUser(null); // Asegúrate de que no haya usuario autenticado
+        setAuthenticatedUser(null);
         setLoading(false);
       }
     } catch (error: any) {

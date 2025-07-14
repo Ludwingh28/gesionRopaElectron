@@ -19,6 +19,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke(channel, ...omit);
   },
   authenticateUser: (username: string, password: string) => ipcRenderer.invoke("authenticateUser", username, password),
+  getUsers: (search: string) => ipcRenderer.invoke("getUsers", search),
+  updateUserStatus: (userId: number, activo: boolean) => ipcRenderer.invoke("updateUserStatus", userId, activo),
+  createUser: (data: any) => ipcRenderer.invoke("createUser", data),
+  updateUser: (data: any) => ipcRenderer.invoke("updateUser", data),
+  getRoles: () => ipcRenderer.invoke("getRoles"),
 
   // You can expose other APTs you need here.
   // ...

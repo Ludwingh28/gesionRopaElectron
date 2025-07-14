@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { connectToDatabase, authenticateUser } from "./database";
+import { connectToDatabase, authenticateUser, getUsers, updateUserStatus, createUser, updateUser, getRoles } from "./database";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -92,10 +92,63 @@ app.whenReady().then(async () => {
   ipcMain.handle("authenticateUser", async (event, username, password) => {
     try {
       const user = await authenticateUser(username, password);
-      return user;
+      if (!user) {
+        return { success: false, reason: "invalid_credentials" };
+      }
+      if (user.activo === 0 || user.activo === false) {
+        return { success: false, reason: "inactive" };
+      }
+      return { success: true, user };
     } catch (error) {
       console.error("Error durante la autenticacion:", error);
       throw error;
+    }
+  });
+
+  ipcMain.handle("getUsers", async (event, search) => {
+    try {
+      const users = await getUsers(search);
+      return users;
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("updateUserStatus", async (event, userId, activo) => {
+    try {
+      await updateUserStatus(userId, activo);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error al actualizar estado de usuario:", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("createUser", async (event, data) => {
+    try {
+      const result = await createUser(data);
+      return result;
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("updateUser", async (event, data) => {
+    try {
+      const result = await updateUser(data);
+      return result;
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("getRoles", async () => {
+    try {
+      const roles = await getRoles();
+      return roles;
+    } catch (error: any) {
+      return [];
     }
   });
 });

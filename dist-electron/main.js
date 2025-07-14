@@ -19662,6 +19662,7 @@ async function authenticateUser(username, password) {
         SELECT
             u.usuario,
             u.password_hash,
+            u.activo,
             r.nombre AS rol_nombre
         FROM
             Usuarios AS u
@@ -19671,6 +19672,46 @@ async function authenticateUser(username, password) {
             u.usuario = ? AND u.password_hash = ?`;
   const rows = await executeQuery(sql, [username, password]);
   return rows[0] || null;
+}
+async function getUsers(search = "") {
+  let sql = `
+    SELECT u.*, r.nombre AS rol_nombre
+    FROM Usuarios AS u
+    JOIN roles AS r ON u.rol_id = r.id
+  `;
+  const params = [];
+  if (search) {
+    sql += ` WHERE u.nombre LIKE ? OR u.usuario LIKE ? OR u.email LIKE ?`;
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  sql += ` ORDER BY u.nombre ASC`;
+  return await executeQuery(sql, params);
+}
+async function updateUserStatus(userId, activo) {
+  const sql = `UPDATE Usuarios SET activo = ? WHERE id = ?`;
+  await executeQuery(sql, [activo, userId]);
+}
+async function createUser(data) {
+  const exists = await executeQuery("SELECT COUNT(*) as count FROM Usuarios WHERE usuario = ?", [data.usuario]);
+  if (exists[0].count > 0) {
+    return { success: false, error: "El usuario ya existe" };
+  }
+  const sql = `INSERT INTO Usuarios (nombre, usuario, email, telefono, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo]);
+  return { success: true };
+}
+async function updateUser(data) {
+  const exists = await executeQuery("SELECT COUNT(*) as count FROM Usuarios WHERE usuario = ? AND id != ?", [data.usuario, data.id]);
+  if (exists[0].count > 0) {
+    return { success: false, error: "El usuario ya existe" };
+  }
+  const sql = `UPDATE Usuarios SET nombre=?, usuario=?, email=?, telefono=?, password_hash=?, rol_id=?, activo=? WHERE id=?`;
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo, data.id]);
+  return { success: true };
+}
+async function getRoles() {
+  const sql = "SELECT * FROM roles ORDER BY nombre ASC";
+  return await executeQuery(sql);
 }
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19730,10 +19771,58 @@ app.whenReady().then(async () => {
   ipcMain.handle("authenticateUser", async (event, username, password) => {
     try {
       const user = await authenticateUser(username, password);
-      return user;
+      if (!user) {
+        return { success: false, reason: "invalid_credentials" };
+      }
+      if (user.activo === 0 || user.activo === false) {
+        return { success: false, reason: "inactive" };
+      }
+      return { success: true, user };
     } catch (error) {
       console.error("Error durante la autenticacion:", error);
       throw error;
+    }
+  });
+  ipcMain.handle("getUsers", async (event, search) => {
+    try {
+      const users = await getUsers(search);
+      return users;
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+      throw error;
+    }
+  });
+  ipcMain.handle("updateUserStatus", async (event, userId, activo) => {
+    try {
+      await updateUserStatus(userId, activo);
+      return { success: true };
+    } catch (error) {
+      console.error("Error al actualizar estado de usuario:", error);
+      return { success: false, error: error.message };
+    }
+  });
+  ipcMain.handle("createUser", async (event, data) => {
+    try {
+      const result = await createUser(data);
+      return result;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+  ipcMain.handle("updateUser", async (event, data) => {
+    try {
+      const result = await updateUser(data);
+      return result;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+  ipcMain.handle("getRoles", async () => {
+    try {
+      const roles = await getRoles();
+      return roles;
+    } catch (error) {
+      return [];
     }
   });
 });
