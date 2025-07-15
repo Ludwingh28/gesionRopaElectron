@@ -174,7 +174,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
           </div>
           <button
             type="submit"
-            className="w-full bg-[#e87e8a] dark:bg-[#d6a463] text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center disabled:opacity-60 cursor-pointer"
+            className="w-full bg-[#e87e8a] dark:bg-[#d6a463] text-white font-semibold py-2 rounded-xl transition flex items-center justify-center disabled:opacity-60 cursor-pointer"
             disabled={loading}
           >
             {loading ? "Guardando..." : user ? "Guardar Cambios" : "Crear Usuario"}
