@@ -25,7 +25,7 @@ type Props = {
   onSave: () => void;
 };
 
-const ProductFormModal: React.FC<Props> = ({ product, onClose, onSave }) => {
+const Modal: React.FC<Props> = ({ product, onClose, onSave }) => {
   const isEdit = Boolean(product?.id);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -117,7 +117,7 @@ const ProductFormModal: React.FC<Props> = ({ product, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-xl p-6 relative">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold">
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer">
           ×
         </button>
         <h2 className="text-2xl font-bold mb-4 text-center">{isEdit ? "Editar Producto" : "Nuevo Producto"}</h2>
@@ -207,10 +207,10 @@ const ProductFormModal: React.FC<Props> = ({ product, onClose, onSave }) => {
             </label>
           </div>
           <footer className="flex justify-end gap-2 pt-4">
-            <button onClick={onClose} type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-50">
+            <button onClick={onClose} type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
               Cancelar
             </button>
-            <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+            <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer">
               {isEdit ? "Guardar Cambios" : "Crear Producto"}
             </button>
           </footer>
@@ -220,4 +220,4 @@ const ProductFormModal: React.FC<Props> = ({ product, onClose, onSave }) => {
   );
 };
 
-export default ProductFormModal;
+export default Modal;
