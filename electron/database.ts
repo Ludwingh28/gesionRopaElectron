@@ -155,11 +155,6 @@ export async function getCategories() {
   return await executeQuery("SELECT id, nombre FROM categorias ORDER BY nombre");
 }
 
-async function generarCodigoInterno(): Promise<string> {
-  const [{ max }] = await executeQuery("SELECT MAX(id) AS max FROM productos");
-  return `P${(max ?? 0) + 1}`.padStart(6, "0");
-}
-
 // Función para añadir un nuevo producto
 export async function addNewProduct(data: { detalle: string; marca_id: number; categoria_id: number; costo_compra: number; precio_venta_base: number; activo: boolean }): Promise<any> {
   const sql = `

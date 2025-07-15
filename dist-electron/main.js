@@ -19823,7 +19823,7 @@ app.whenReady().then(async () => {
       app.quit();
     }
   });
-  ipcMain.handle("authenticateUser", async (event, username, password) => {
+  ipcMain.handle("authenticateUser", async (_, username, password) => {
     try {
       const user = await authenticateUser(username, password);
       if (!user) {
@@ -19838,7 +19838,7 @@ app.whenReady().then(async () => {
       throw error;
     }
   });
-  ipcMain.handle("getUsers", async (event, search) => {
+  ipcMain.handle("getUsers", async (_, search) => {
     try {
       const users = await getUsers(search);
       return users;
@@ -19847,7 +19847,7 @@ app.whenReady().then(async () => {
       throw error;
     }
   });
-  ipcMain.handle("updateUserStatus", async (event, userId, activo) => {
+  ipcMain.handle("updateUserStatus", async (_, userId, activo) => {
     try {
       await updateUserStatus(userId, activo);
       return { success: true };
@@ -19856,7 +19856,7 @@ app.whenReady().then(async () => {
       return { success: false, error: error.message };
     }
   });
-  ipcMain.handle("createUser", async (event, data) => {
+  ipcMain.handle("createUser", async (_, data) => {
     try {
       const result = await createUser(data);
       return result;
@@ -19864,7 +19864,7 @@ app.whenReady().then(async () => {
       return { success: false, error: error.message };
     }
   });
-  ipcMain.handle("updateUser", async (event, data) => {
+  ipcMain.handle("updateUser", async (_, data) => {
     try {
       const result = await updateUser(data);
       return result;
@@ -19881,7 +19881,7 @@ app.whenReady().then(async () => {
     }
   });
 });
-ipcMain.handle("getProducts", async (event, search = "") => {
+ipcMain.handle("getProducts", async (_, search = "") => {
   try {
     const products = await getProducts(search);
     return products;
@@ -19890,7 +19890,7 @@ ipcMain.handle("getProducts", async (event, search = "") => {
     throw error;
   }
 });
-ipcMain.handle("createProduct", async (event, data) => {
+ipcMain.handle("createProduct", async (_, data) => {
   try {
     const result = await createProduct(data);
     return result;
@@ -19899,7 +19899,7 @@ ipcMain.handle("createProduct", async (event, data) => {
     throw error;
   }
 });
-ipcMain.handle("updateProduct", async (event, data) => {
+ipcMain.handle("updateProduct", async (_, data) => {
   try {
     const result = await updateProduct(data);
     return result;
@@ -19908,7 +19908,7 @@ ipcMain.handle("updateProduct", async (event, data) => {
     throw error;
   }
 });
-ipcMain.handle("deleteProduct", async (event, id) => {
+ipcMain.handle("deleteProduct", async (_, id) => {
   try {
     const result = await deleteProduct(id);
     return result;
@@ -19917,7 +19917,7 @@ ipcMain.handle("deleteProduct", async (event, id) => {
     throw error;
   }
 });
-ipcMain.handle("updateProductPrice", async (event, productId, newPrice) => {
+ipcMain.handle("updateProductPrice", async (_, productId, newPrice) => {
   try {
     const result = await updateProductPrice(productId, newPrice);
     return result;
@@ -19944,7 +19944,7 @@ ipcMain.handle("getCategories", async () => {
     throw error;
   }
 });
-ipcMain.handle("createBrand", async (event, data) => {
+ipcMain.handle("createBrand", async (_, data) => {
   try {
     const result = await createBrand(data);
     return result;
@@ -19953,7 +19953,7 @@ ipcMain.handle("createBrand", async (event, data) => {
     throw error;
   }
 });
-ipcMain.handle("createCategory", async (event, data) => {
+ipcMain.handle("createCategory", async (_, data) => {
   try {
     const result = await createCategory(data);
     return result;

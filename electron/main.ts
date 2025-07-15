@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
@@ -21,7 +20,6 @@ import {
   createCategory,
 } from "./database";
 
-const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The built directory structure
@@ -106,7 +104,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("authenticateUser", async (event, username, password) => {
+  ipcMain.handle("authenticateUser", async (_, username, password) => {
     try {
       const user = await authenticateUser(username, password);
       if (!user) {
@@ -122,7 +120,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("getUsers", async (event, search) => {
+  ipcMain.handle("getUsers", async (_, search) => {
     try {
       const users = await getUsers(search);
       return users;
@@ -132,7 +130,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("updateUserStatus", async (event, userId, activo) => {
+  ipcMain.handle("updateUserStatus", async (_, userId, activo) => {
     try {
       await updateUserStatus(userId, activo);
       return { success: true };
@@ -142,7 +140,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("createUser", async (event, data) => {
+  ipcMain.handle("createUser", async (_, data) => {
     try {
       const result = await createUser(data);
       return result;
@@ -151,7 +149,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("updateUser", async (event, data) => {
+  ipcMain.handle("updateUser", async (_, data) => {
     try {
       const result = await updateUser(data);
       return result;
@@ -171,7 +169,7 @@ app.whenReady().then(async () => {
 });
 
 // Handlers para productos
-ipcMain.handle("getProducts", async (event, search = "") => {
+ipcMain.handle("getProducts", async (_, search = "") => {
   try {
     const products = await getProducts(search);
     return products;
@@ -181,7 +179,7 @@ ipcMain.handle("getProducts", async (event, search = "") => {
   }
 });
 
-ipcMain.handle("createProduct", async (event, data) => {
+ipcMain.handle("createProduct", async (_, data) => {
   try {
     const result = await createProduct(data);
     return result;
@@ -191,7 +189,7 @@ ipcMain.handle("createProduct", async (event, data) => {
   }
 });
 
-ipcMain.handle("updateProduct", async (event, data) => {
+ipcMain.handle("updateProduct", async (_, data) => {
   try {
     const result = await updateProduct(data);
     return result;
@@ -201,7 +199,7 @@ ipcMain.handle("updateProduct", async (event, data) => {
   }
 });
 
-ipcMain.handle("deleteProduct", async (event, id: number) => {
+ipcMain.handle("deleteProduct", async (_, id: number) => {
   try {
     const result = await deleteProduct(id);
     return result;
@@ -211,7 +209,7 @@ ipcMain.handle("deleteProduct", async (event, id: number) => {
   }
 });
 
-ipcMain.handle("updateProductPrice", async (event, productId: number, newPrice: number) => {
+ipcMain.handle("updateProductPrice", async (_, productId: number, newPrice: number) => {
   try {
     const result = await updateProductPrice(productId, newPrice);
     return result;
@@ -241,7 +239,7 @@ ipcMain.handle("getCategories", async () => {
   }
 });
 
-ipcMain.handle("createBrand", async (event, data) => {
+ipcMain.handle("createBrand", async (_, data) => {
   try {
     const result = await createBrand(data);
     return result;
@@ -251,7 +249,7 @@ ipcMain.handle("createBrand", async (event, data) => {
   }
 });
 
-ipcMain.handle("createCategory", async (event, data) => {
+ipcMain.handle("createCategory", async (_, data) => {
   try {
     const result = await createCategory(data);
     return result;
