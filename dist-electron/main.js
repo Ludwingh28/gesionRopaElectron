@@ -19728,11 +19728,10 @@ async function getProducts(search = "") {
   return await executeQuery(sql, params);
 }
 async function createProduct(data) {
-  const codigo = await generarCodigoInterno();
   const sql = `
     INSERT INTO productos (codigo_interno, detalle, marca_id, categoria_id, costo_compra, precio_venta_base, activo)
     VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  await executeQuery(sql, [codigo, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
+  await executeQuery(sql, [null, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
   return { success: true };
 }
 async function updateProduct(data) {
@@ -19753,10 +19752,6 @@ async function getBrands() {
 }
 async function getCategories() {
   return await executeQuery("SELECT id, nombre FROM categorias ORDER BY nombre");
-}
-async function generarCodigoInterno() {
-  const [{ max }] = await executeQuery("SELECT MAX(id) AS max FROM productos");
-  return `P${(max ?? 0) + 1}`.padStart(6, "0");
 }
 async function updateProductPrice(productId, newPrice) {
   const sql = "UPDATE productos SET precio_venta_base = ? WHERE id = ?";

@@ -143,8 +143,8 @@ const ProductManagement = () => {
   };
 
   // Columnas para DataTable
-  const columns: DataTableColumn<Product & { marca?: string; categoria?: string }>[] = [
-    { key: "id", label: "ID" },
+  const columns: DataTableColumn<Product & { marca?: string; categoria?: string; codigo_interno?: string }>[] = [
+    { key: "codigo_interno", label: "Código Interno" },
     { key: "detalle", label: "Detalle" },
     { key: "marca", label: "Marca" },
     { key: "categoria", label: "Categoría" },

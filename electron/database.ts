@@ -124,11 +124,11 @@ export async function getProducts(search = "") {
 }
 
 export async function createProduct(data: any) {
-  const codigo = await generarCodigoInterno();
   const sql = `
     INSERT INTO productos (codigo_interno, detalle, marca_id, categoria_id, costo_compra, precio_venta_base, activo)
     VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  await executeQuery(sql, [codigo, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
+  // Enviamos null para que el trigger lo genere
+  await executeQuery(sql, [null, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
   return { success: true };
 }
 
@@ -162,12 +162,11 @@ async function generarCodigoInterno(): Promise<string> {
 
 // Función para añadir un nuevo producto
 export async function addNewProduct(data: { detalle: string; marca_id: number; categoria_id: number; costo_compra: number; precio_venta_base: number; activo: boolean }): Promise<any> {
-  const codigo = await generarCodigoInterno();
   const sql = `
         INSERT INTO productos (codigo_interno, detalle, marca_id, categoria_id, costo_compra, precio_venta_base, activo)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-  await executeQuery(sql, [codigo, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
+  await executeQuery(sql, [null, data.detalle, data.marca_id, data.categoria_id, data.costo_compra, data.precio_venta_base, data.activo]);
   return { success: true };
 }
 
