@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../components/UserManagement/Modal";
+import DataTable, { DataTableColumn } from "../components/DataTable";
 
 const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -76,8 +77,8 @@ const UserManagement = () => {
     }
   };
 
-  // Columnas de la tabla usuarios (solo las requeridas)
-  const columns = [
+  // Columnas para DataTable
+  const columns: DataTableColumn<any>[] = [
     { key: "nombre", label: "Nombre" },
     { key: "usuario", label: "Usuario" },
     { key: "email", label: "Correo" },
@@ -86,6 +87,22 @@ const UserManagement = () => {
     { key: "rol_nombre", label: "Rol" },
     { key: "created_at", label: "Creado" },
     { key: "updated_at", label: "Editado" },
+    {
+      key: "activo",
+      label: "Estado",
+      render: (user) => (
+        <button
+          onClick={() => handleSwitch(user.id, !!user.activo)}
+          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? 'bg-green-500' : 'bg-gray-400'} cursor-pointer`}
+          title={user.activo ? 'Activo' : 'Inactivo'}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${user.activo ? 'translate-x-6' : 'translate-x-1'}`}
+          />
+        </button>
+      ),
+      className: "text-center"
+    },
   ];
 
   return (
@@ -118,47 +135,21 @@ const UserManagement = () => {
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white dark:bg-gray-800 rounded shadow">
-              <thead>
-                <tr>
-                  {columns.map(col => (
-                    <th key={col.key} className="px-4 py-2 capitalize">{col.label}</th>
-                  ))}
-                  <th className="px-4 py-2">Estado</th>
-                  <th className="px-4 py-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-t border-gray-200 dark:border-gray-700">
-                    {columns.map(col => (
-                      <td key={col.key} className="px-4 py-2 text-xs break-all">{String(user[col.key] ?? "-")}</td>
-                    ))}
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        onClick={() => handleSwitch(user.id, !!user.activo)}
-                        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? 'bg-green-500' : 'bg-gray-400'} cursor-pointer`}
-                        title={user.activo ? 'Activo' : 'Inactivo'}
-                      >
-                        <span
-                          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${user.activo ? 'translate-x-6' : 'translate-x-1'}`}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={columns}
+            data={users}
+            loading={loading}
+            error={error}
+            rowKey={(row) => row.id}
+            actions={(user) => (
+              <button
+                onClick={() => handleEdit(user)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
+              >
+                Editar
+              </button>
+            )}
+          />
         )}
       </section>
       <Modal

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProductFormModal from "../components/ProductManagement/Modal";
+import DataTable, { DataTableColumn } from "../components/DataTable";
 
 interface Product {
   id?: number;
@@ -24,7 +25,7 @@ const ProductManagement = () => {
   const [productsPerPage] = useState(15);
   const [totalProducts, setTotalProducts] = useState(0);
 
-  const loadProducts = async (searchValue = "", page = 1) => {
+  const loadProducts = async (searchValue = "") => {
     setLoading(true);
     try {
       const prods = await (window.electronAPI as any).getProducts(searchValue);
@@ -46,13 +47,13 @@ const ProductManagement = () => {
     setShowModal(false);
     setEditingProduct(null);
     setCurrentPage(1); // Resetear a la primera página
-    loadProducts(search, 1);
+    loadProducts(search);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1); // Resetear a la primera página al buscar
-    loadProducts(search, 1);
+    loadProducts(search);
   };
 
   const handleEdit = (product: Product) => {
@@ -141,6 +142,34 @@ const ProductManagement = () => {
     return pageNumbers;
   };
 
+  // Columnas para DataTable
+  const columns: DataTableColumn<Product>[] = [
+    { key: "id", label: "ID" },
+    { key: "detalle", label: "Detalle" },
+    { key: "costo_compra", label: "Costo de Compra", className: "text-center" },
+    { key: "precio_venta_base", label: "Precio Base", className: "text-center" },
+    {
+      key: "precio_promotora",
+      label: "Precio Promotoras",
+      className: "text-center",
+      render: (prod) => (prod.precio_venta_base * 1.2).toFixed(2),
+    },
+    {
+      key: "activo",
+      label: "Estado",
+      className: "text-center",
+      render: (prod) => (
+        <button
+          onClick={() => handleSwitch(prod.id!, prod.activo)}
+          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${prod.activo ? "bg-green-500" : "bg-gray-400"} cursor-pointer`}
+          title={prod.activo ? "Activo" : "Inactivo"}
+        >
+          <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${prod.activo ? "translate-x-6" : "translate-x-1"}`} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6">
       <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2">Gestión de Productos</header>
@@ -176,46 +205,18 @@ const ProductManagement = () => {
           <p className="text-red-500">{error}</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white dark:bg-gray-800 rounded shadow">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2">ID</th>
-                    <th className="px-4 py-2">Detalle</th>
-                    <th className="px-4 py-2">Costo de Compra</th>
-                    <th className="px-4 py-2">Precio Base</th>
-                    <th className="px-4 py-2">Precio Promotoras</th>
-                    <th className="px-4 py-2">Estado</th>
-                    <th className="px-4 py-2">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentProducts.map((prod: Product) => (
-                    <tr key={prod.id} className="border-t border-gray-200 dark:border-gray-700">
-                      <td className="px-4 py-2 text-xs">{prod.id}</td>
-                      <td className="px-4 py-2 text-xs break-all">{prod.detalle}</td>
-                      <td className="px-4 py-2 text-xs  text-center">{prod.costo_compra}</td>
-                      <td className="px-4 py-2 text-xs  text-center">{prod.precio_venta_base}</td>
-                      <td className="px-4 py-2 text-xs  text-center">{(prod.precio_venta_base * 1.2).toFixed(2)}</td>
-                      <td className="px-4 py-2 text-center">
-                        <button
-                          onClick={() => handleSwitch(prod.id!, prod.activo)}
-                          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${prod.activo ? "bg-green-500" : "bg-gray-400"} cursor-pointer`}
-                          title={prod.activo ? "Activo" : "Inactivo"}
-                        >
-                          <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${prod.activo ? "translate-x-6" : "translate-x-1"}`} />
-                        </button>
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={columns}
+              data={currentProducts}
+              loading={loading}
+              error={error}
+              rowKey={(row) => row.id!}
+              actions={(prod) => (
+                <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
+                  Editar
+                </button>
+              )}
+            />
 
             {/* Información de paginación */}
             <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
