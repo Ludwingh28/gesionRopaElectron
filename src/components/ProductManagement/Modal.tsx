@@ -115,10 +115,10 @@ const Modal: React.FC<Props> = ({ product, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-gray-900/30">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-xl p-6 relative">
         <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer">
-          ×
+          <X />
         </button>
         <h2 className="text-2xl font-bold mb-4 text-center">{isEdit ? "Editar Producto" : "Nuevo Producto"}</h2>
         <form onSubmit={submit} className="space-y-4">
