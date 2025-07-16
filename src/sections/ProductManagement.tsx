@@ -283,8 +283,11 @@ const ProductManagement = () => {
               error={error}
               rowKey={(row) => row.id!}
               actions={(prod) => (
-                <>
-                  <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
+                <div className="flex flex-wrap gap-2 justify-center items-center">
+                  <button
+                    onClick={() => handleEdit(prod)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
+                  >
                     Editar
                   </button>
                   <button
@@ -293,11 +296,11 @@ const ProductManagement = () => {
                       setBarcodeProduct(prod);
                       setShowBarcode(true);
                     }}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded font-semibold cursor-pointer ml-2"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded font-semibold cursor-pointer"
                   >
                     Imprimir Código
                   </button>
-                </>
+                </div>
               )}
             />
 
