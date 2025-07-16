@@ -200,7 +200,7 @@ const ProductManagement = () => {
           <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-xl">
             <input
               type="text"
-              placeholder="Buscar por ID o Detalle"
+              placeholder="Buscar por Código Interno, Detalle o ID"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full"
