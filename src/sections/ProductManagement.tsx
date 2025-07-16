@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProductFormModal from "../components/ProductManagement/Modal";
 import DataTable, { DataTableColumn } from "../components/DataTable";
 
@@ -31,6 +31,10 @@ const ProductManagement = () => {
   const [barcodeProduct, setBarcodeProduct] = useState<any>(null);
   const barcodeRef = React.useRef<HTMLCanvasElement>(null);
 
+  // Agregar import para html5-qrcode
+  const [showScanner, setShowScanner] = useState(false);
+  const scannerRef = useRef<HTMLDivElement>(null);
+
   const loadProducts = async (searchValue = "") => {
     setLoading(true);
     try {
@@ -61,6 +65,45 @@ const ProductManagement = () => {
       });
     }
   }, [barcode, showBarcode]);
+
+  // useEffect para inicializar y limpiar el escáner
+  useEffect(() => {
+    let html5QrCode: any;
+    let isRunning = false;
+    if (showScanner && scannerRef.current) {
+      import('html5-qrcode').then(({ Html5Qrcode }) => {
+        html5QrCode = new Html5Qrcode("barcode-scanner");
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          (decodedText: string) => {
+            setSearch(decodedText);
+            setShowScanner(false);
+            setTimeout(() => {
+              const form = document.querySelector('form');
+              if (form) {
+                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+              }
+            }, 100);
+            if (isRunning) {
+              html5QrCode.stop();
+              isRunning = false;
+            }
+          },
+          () => {}
+        ).then(() => {
+          isRunning = true;
+        });
+      });
+    }
+    return () => {
+      if (html5QrCode && isRunning) {
+        html5QrCode.stop().catch(() => {});
+        isRunning = false;
+      }
+    };
+    // eslint-disable-next-line
+  }, [showScanner]);
 
   const handleSave = () => {
     setShowModal(false);
@@ -207,6 +250,13 @@ const ProductManagement = () => {
             />
             <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">
               Buscar
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowScanner(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-semibold cursor-pointer"
+            >
+              Escanear código
             </button>
           </form>
           <button
@@ -372,6 +422,18 @@ const ProductManagement = () => {
                 }
               }
             `}</style>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de escaneo de código de barras */}
+      {showScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col items-center gap-4 relative w-full max-w-md">
+            <button onClick={() => setShowScanner(false)} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">×</button>
+            <h3 className="text-xl font-bold mb-2">Escanear Código de Barras</h3>
+            <div ref={scannerRef} id="barcode-scanner" style={{ width: 300, height: 300 }} />
+            <p className="text-sm text-gray-500">Apunta la cámara al código de barras del producto</p>
           </div>
         </div>
       )}
