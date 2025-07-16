@@ -25,6 +25,12 @@ const ProductManagement = () => {
   const [productsPerPage] = useState(15);
   const [totalProducts, setTotalProducts] = useState(0);
 
+  // Estados para mostrar el modal de código de barras desde la tabla
+  const [barcode, setBarcode] = useState<string | null>(null);
+  const [showBarcode, setShowBarcode] = useState(false);
+  const [barcodeProduct, setBarcodeProduct] = useState<any>(null);
+  const barcodeRef = React.useRef<HTMLCanvasElement>(null);
+
   const loadProducts = async (searchValue = "") => {
     setLoading(true);
     try {
@@ -42,6 +48,19 @@ const ProductManagement = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    if (barcode && showBarcode && barcodeRef.current) {
+      import('jsbarcode').then((JsBarcode) => {
+        JsBarcode.default(barcodeRef.current, barcode, {
+          format: "CODE128",
+          width: 2,
+          height: 60,
+          displayValue: true,
+        });
+      });
+    }
+  }, [barcode, showBarcode]);
 
   const handleSave = () => {
     setShowModal(false);
@@ -214,9 +233,21 @@ const ProductManagement = () => {
               error={error}
               rowKey={(row) => row.id!}
               actions={(prod) => (
-                <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
-                  Editar
-                </button>
+                <>
+                  <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBarcode((prod as any).codigo_interno);
+                      setBarcodeProduct(prod);
+                      setShowBarcode(true);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded font-semibold cursor-pointer ml-2"
+                  >
+                    Imprimir Código
+                  </button>
+                </>
               )}
             />
 
@@ -284,6 +315,66 @@ const ProductManagement = () => {
       </section>
 
       {showModal && <ProductFormModal product={editingProduct} onClose={() => setShowModal(false)} onSave={handleSave} />}
+
+      {/* Modal de código de barras desde la tabla */}
+      {showBarcode && barcode && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center gap-4 relative">
+            <button onClick={() => { setShowBarcode(false); setBarcode(null); setBarcodeProduct(null); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">×</button>
+            <h3 className="text-xl font-bold mb-2">Código de Barras del Producto</h3>
+            <div className="mb-2 text-center">
+              <div className="font-semibold">{barcodeProduct?.detalle}</div>
+              <div className="text-sm text-gray-500">{barcodeProduct?.marca} - {barcodeProduct?.categoria}</div>
+            </div>
+            {/* Área imprimible */}
+            <div id="barcode-print-area" className="print-area bg-white p-4 rounded flex flex-col items-center gap-2">
+              <canvas ref={barcodeRef} style={{ display: 'block' }} />
+              <div className="font-bold text-lg mt-2">{barcode}</div>
+              <div className="text-base">{barcodeProduct?.detalle}</div>
+            </div>
+            <button
+              onClick={() => {
+                setTimeout(() => window.print(), 100);
+              }}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer mt-2"
+            >
+              Imprimir
+            </button>
+            {/* Estilos para impresión */}
+            <style>{`
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                #barcode-print-area, #barcode-print-area * {
+                  visibility: visible !important;
+                }
+                #barcode-print-area {
+                  position: fixed !important;
+                  left: 0; top: 0; width: 100vw; height: 100vh;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  background: white !important;
+                  box-shadow: none !important;
+                  z-index: 9999 !important;
+                }
+                html, body {
+                  width: 100vw !important;
+                  height: 100vh !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                @page {
+                  size: auto;
+                  margin: 0;
+                }
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

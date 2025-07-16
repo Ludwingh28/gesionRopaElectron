@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X } from "lucide-react";
 
 interface Brand {
@@ -44,6 +44,9 @@ const Modal: React.FC<Props> = ({ product, onClose, onSave }) => {
   const [newBrand, setNewBrand] = useState("");
   const [isOtherCategory, setIsOtherCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [barcode, setBarcode] = useState<string | null>(null);
+  const [showBarcode, setShowBarcode] = useState(false);
+  const barcodeRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -102,121 +105,158 @@ const Modal: React.FC<Props> = ({ product, onClose, onSave }) => {
         const createdCategory = await (window.electronAPI as any).createCategory({ nombre: newCategory });
         form.categoria_id = createdCategory.id;
       }
+      let createdProduct = null;
       if (isEdit) {
         await (window.electronAPI as any).updateProduct(form);
+        onSave();
       } else {
         await (window.electronAPI as any).createProduct(form);
+        // Buscar el producto recién creado por detalle y marca (último insertado)
+        const productos = await (window.electronAPI as any).getProducts(form.detalle);
+        createdProduct = productos.reverse().find((p: any) => p.detalle === form.detalle && p.marca_id === form.marca_id);
+        if (createdProduct && createdProduct.codigo_interno) {
+          setBarcode(createdProduct.codigo_interno);
+          setShowBarcode(true);
+        } else {
+          onSave(); // fallback si no se encuentra el producto
+        }
       }
-      onSave();
     } catch (error) {
       console.error("Error al guardar el producto", error);
       alert("Error al guardar producto");
     }
   };
 
+  useEffect(() => {
+    if (barcode && showBarcode && barcodeRef.current) {
+      // Asegúrate de instalar jsbarcode: npm install jsbarcode
+      import('jsbarcode').then((JsBarcode) => {
+        JsBarcode.default(barcodeRef.current, barcode, {
+          format: "CODE128",
+          width: 2,
+          height: 60,
+          displayValue: true,
+        });
+      });
+    }
+  }, [barcode, showBarcode]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-gray-900/30">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-xl p-6 relative">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer">
-          <X />
-        </button>
-        <h2 className="text-2xl font-bold mb-4 text-center">{isEdit ? "Editar Producto" : "Nuevo Producto"}</h2>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm">
-              Detalle
-              <input name="detalle" value={form.detalle} onChange={handleChange} required className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white" />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Marca
-              <select name="marca_id" value={isOtherBrand ? "other" : form.marca_id || ""} onChange={handleChange} required className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white">
-                <option value="">Selecciona…</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.nombre}
-                  </option>
-                ))}
-                <option value="other">Otra...</option>
-              </select>
-              {isOtherBrand && (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-gray-900/30">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-xl p-6 relative">
+          <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer">
+            <X />
+          </button>
+          <h2 className="text-2xl font-bold mb-4 text-center">{isEdit ? "Editar Producto" : "Nuevo Producto"}</h2>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 text-sm">
+                Detalle
+                <input name="detalle" value={form.detalle} onChange={handleChange} required className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white" />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Marca
+                <select name="marca_id" value={isOtherBrand ? "other" : form.marca_id || ""} onChange={handleChange} required className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white">
+                  <option value="">Selecciona…</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.nombre}
+                    </option>
+                  ))}
+                  <option value="other">Otra...</option>
+                </select>
+                {isOtherBrand && (
+                  <input
+                    type="text"
+                    placeholder="Nueva Marca"
+                    value={newBrand}
+                    onChange={(e) => setNewBrand(e.target.value)}
+                    className="mt-2 rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
+                  />
+                )}
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Categoría
+                <select
+                  name="categoria_id"
+                  value={isOtherCategory ? "other" : form.categoria_id || ""}
+                  onChange={handleChange}
+                  required
+                  className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Selecciona…</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.nombre}
+                    </option>
+                  ))}
+                  <option value="other">Otra...</option>
+                </select>
+                {isOtherCategory && (
+                  <input
+                    type="text"
+                    placeholder="Nueva Categoría"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="mt-2 rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
+                  />
+                )}
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Costo de compra
                 <input
-                  type="text"
-                  placeholder="Nueva Marca"
-                  value={newBrand}
-                  onChange={(e) => setNewBrand(e.target.value)}
-                  className="mt-2 rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
+                  type="number"
+                  step="0.01"
+                  name="costo_compra"
+                  value={form.costo_compra}
+                  onChange={handleChange}
+                  required
+                  className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
                 />
-              )}
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Categoría
-              <select
-                name="categoria_id"
-                value={isOtherCategory ? "other" : form.categoria_id || ""}
-                onChange={handleChange}
-                required
-                className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
-              >
-                <option value="">Selecciona…</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nombre}
-                  </option>
-                ))}
-                <option value="other">Otra...</option>
-              </select>
-              {isOtherCategory && (
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Precio base
                 <input
-                  type="text"
-                  placeholder="Nueva Categoría"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="mt-2 rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
+                  type="number"
+                  step="0.01"
+                  name="precio_venta_base"
+                  value={form.precio_venta_base}
+                  onChange={handleChange}
+                  required
+                  className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
                 />
-              )}
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Costo de compra
-              <input
-                type="number"
-                step="0.01"
-                name="costo_compra"
-                value={form.costo_compra}
-                onChange={handleChange}
-                required
-                className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Precio base
-              <input
-                type="number"
-                step="0.01"
-                name="precio_venta_base"
-                value={form.precio_venta_base}
-                onChange={handleChange}
-                required
-                className="rounded-lg border p-2 bg-white dark:bg-gray-700 dark:text-white"
-              />
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} className="h-4 w-4 rounded" />
-              Activo
-            </label>
-          </div>
-          <footer className="flex justify-end gap-2 pt-4">
-            <button onClick={onClose} type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-              Cancelar
-            </button>
-            <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer">
-              {isEdit ? "Guardar Cambios" : "Crear Producto"}
-            </button>
-          </footer>
-        </form>
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 text-sm">
+                <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} className="h-4 w-4 rounded" />
+                Activo
+              </label>
+            </div>
+            <footer className="flex justify-end gap-2 pt-4">
+              <button onClick={onClose} type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                Cancelar
+              </button>
+              <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer">
+                {isEdit ? "Guardar Cambios" : "Crear Producto"}
+              </button>
+            </footer>
+          </form>
+        </div>
       </div>
-    </div>
+      {/* Modal de código de barras */}
+      {showBarcode && barcode && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center gap-4 relative">
+            <button onClick={() => { setShowBarcode(false); setBarcode(null); onSave(); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">×</button>
+            <h3 className="text-xl font-bold mb-2">Código de Barras del Producto</h3>
+            <canvas ref={barcodeRef} />
+            <button onClick={() => window.print()} className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer mt-2">Imprimir</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
