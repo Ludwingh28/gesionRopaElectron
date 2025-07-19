@@ -32,7 +32,21 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   getBrands: () => electron.ipcRenderer.invoke("getBrands"),
   getCategories: () => electron.ipcRenderer.invoke("getCategories"),
   createBrand: (data) => electron.ipcRenderer.invoke("createBrand", data),
-  createCategory: (data) => electron.ipcRenderer.invoke("createCategory", data)
+  createCategory: (data) => electron.ipcRenderer.invoke("createCategory", data),
+  // API para gestión de ventas:
+  getProductByCode: (codigo) => electron.ipcRenderer.invoke("getProductByCode", codigo),
+  getInventoryByProduct: (productId) => electron.ipcRenderer.invoke("getInventoryByProduct", productId),
+  createSale: (data) => electron.ipcRenderer.invoke("createSale", data),
+  addItemToSale: (data) => electron.ipcRenderer.invoke("addItemToSale", data),
+  getSaleDetails: (ventaId) => electron.ipcRenderer.invoke("getSaleDetails", ventaId),
+  getUserById: (userId) => electron.ipcRenderer.invoke("getUserById", userId),
+  // API para gestión de inventario:
+  getInventoryList: () => electron.ipcRenderer.invoke("getInventoryList"),
+  getTallas: () => electron.ipcRenderer.invoke("getTallas"),
+  getColores: () => electron.ipcRenderer.invoke("getColores"),
+  createInventoryItem: (data) => electron.ipcRenderer.invoke("createInventoryItem", data),
+  updateInventoryStock: (inventarioId, newStock) => electron.ipcRenderer.invoke("updateInventoryStock", inventarioId, newStock),
+  deleteInventoryItem: (inventarioId) => electron.ipcRenderer.invoke("deleteInventoryItem", inventarioId)
   // You can expose other APTs you need here.
   // ...
 });

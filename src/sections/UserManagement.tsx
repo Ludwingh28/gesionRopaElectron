@@ -44,7 +44,7 @@ const UserManagement = () => {
     // @ts-ignore
     const res = await window.electronAPI.updateUserStatus(userId, !current);
     if (res.success) {
-      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, activo: !current } : u));
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, activo: !current } : u)));
     } else {
       alert("No se pudo actualizar el estado");
     }
@@ -85,31 +85,25 @@ const UserManagement = () => {
     { key: "telefono", label: "Teléfono" },
     { key: "password_hash", label: "Contraseña" },
     { key: "rol_nombre", label: "Rol" },
-    { key: "created_at", label: "Creado" },
-    { key: "updated_at", label: "Editado" },
     {
       key: "activo",
       label: "Estado",
       render: (user) => (
         <button
           onClick={() => handleSwitch(user.id, !!user.activo)}
-          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? 'bg-green-500' : 'bg-gray-400'} cursor-pointer`}
-          title={user.activo ? 'Activo' : 'Inactivo'}
+          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${user.activo ? "bg-green-500" : "bg-gray-400"} cursor-pointer`}
+          title={user.activo ? "Activo" : "Inactivo"}
         >
-          <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${user.activo ? 'translate-x-6' : 'translate-x-1'}`}
-          />
+          <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${user.activo ? "translate-x-6" : "translate-x-1"}`} />
         </button>
       ),
-      className: "text-center"
+      className: "text-center",
     },
   ];
 
   return (
     <>
-      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2">
-        Gestión de Usuarios
-      </header>
+      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2">Gestión de Usuarios</header>
 
       <section className="mt-6">
         <div className="flex justify-between items-center mb-4">
@@ -118,15 +112,14 @@ const UserManagement = () => {
               type="text"
               placeholder="Buscar por nombre, usuario o email"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full"
             />
-            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">Buscar</button>
+            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">
+              Buscar
+            </button>
           </form>
-          <button
-            onClick={handleAdd}
-            className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold shadow cursor-pointer"
-          >
+          <button onClick={handleAdd} className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold shadow cursor-pointer">
             Agregar
           </button>
         </div>
@@ -142,25 +135,16 @@ const UserManagement = () => {
             error={error}
             rowKey={(row) => row.id}
             actions={(user) => (
-              <button
-                onClick={() => handleEdit(user)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
-              >
+              <button onClick={() => handleEdit(user)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
                 Editar
               </button>
             )}
           />
         )}
       </section>
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-        user={editUser}
-        roles={roles}
-      />
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} user={editUser} roles={roles} />
     </>
   );
 };
 
-export default UserManagement; 
+export default UserManagement;

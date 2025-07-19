@@ -1,16 +1,8 @@
+// Actualizar src/Login.tsx - Usar tipos globales
+
 import { useState, useEffect } from "react";
 import { Moon, Sun, User, Lock, Eye, EyeOff } from "lucide-react";
 import App from "./App";
-
-declare global {
-  interface Window {
-    electronAPI: {
-      authenticateUser: (username: string, password: string) => Promise<{ success: boolean; reason?: string }>;
-      // Aquí podrías añadir un método para obtener datos del usuario autenticado si lo necesitas
-      // getAuthenticatedUserData: () => Promise<any>;
-    };
-  }
-}
 
 const Login = () => {
   // Estado para el usuario y contraseña
@@ -41,7 +33,7 @@ const Login = () => {
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
-  // --- Nueva función para manejar el envío del formulario de login ---
+  // Función para manejar el envío del formulario de login
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault(); // Previene el recargado de la página por defecto del formulario
 
@@ -59,8 +51,19 @@ const Login = () => {
       // Llama a la función de autenticación del proceso principal de Electron
       const response = await window.electronAPI.authenticateUser(username, password);
 
-      if (response.success) {
+      if (response.success && response.user) {
         setSuccessMessage("¡Inicio de sesión exitoso!");
+
+        // Guardar información del usuario en localStorage
+        const userData = {
+          id: response.user.id || 1, // Asegurar que tenga un ID
+          nombre: response.user.nombre || username,
+          usuario: response.user.usuario || username,
+          rol_nombre: response.user.rol_nombre,
+          email: response.user.email || "",
+        };
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+
         setAuthenticatedUser(username); // Guarda el nombre de usuario autenticado
         setLoading(false);
       } else if (response.reason === "inactive") {
@@ -145,7 +148,9 @@ const Login = () => {
 
           <button
             type="submit"
-            className={`w-full bg-[#e87e8a] dark:bg-[#d6a463] hover:opacity-90 text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center ${loading ? 'opacity-70' : ''}`}
+            className={`w-full bg-[#e87e8a] dark:bg-[#d6a463] hover:opacity-90 text-white font-semibold py-2 rounded-xl transition cursor-pointer flex items-center justify-center ${
+              loading ? "opacity-70" : ""
+            }`}
             disabled={loading}
           >
             {loading ? (
@@ -153,7 +158,9 @@ const Login = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
-            ) : 'Iniciar Sesión'}
+            ) : (
+              "Iniciar Sesión"
+            )}
           </button>
         </form>
       </div>

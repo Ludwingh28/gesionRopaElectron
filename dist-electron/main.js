@@ -19659,12 +19659,15 @@ async function executeQuery(sql, params) {
 async function authenticateUser(username, password) {
   const sql = `
         SELECT
+            u.id,
+            u.nombre,
             u.usuario,
+            u.email,
             u.password_hash,
             u.activo,
             r.nombre AS rol_nombre
         FROM
-            Usuarios AS u
+            usuarios AS u
         JOIN
             roles AS r ON u.rol_id = r.id
         WHERE
@@ -19766,6 +19769,174 @@ async function createCategory(data) {
   const sql = "INSERT INTO categorias (nombre) VALUES (?)";
   const result = await executeQuery(sql, [data.nombre]);
   return { id: result.insertId, success: true };
+}
+async function getProductByCode(codigo) {
+  const sql = `
+    SELECT 
+      p.id, p.codigo_interno, p.detalle, 
+      CAST(p.precio_venta_base AS DECIMAL(10,2)) as precio_venta_base, 
+      CAST(p.precio_promotora AS DECIMAL(10,2)) as precio_promotora,
+      m.nombre AS marca, c.nombre AS categoria
+    FROM productos p
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN categorias c ON p.categoria_id = c.id
+    WHERE p.codigo_interno = ? AND p.activo = TRUE
+  `;
+  const rows = await executeQuery(sql, [codigo]);
+  if (rows.length === 0) return null;
+  const product = rows[0];
+  return {
+    ...product,
+    precio_venta_base: Number(product.precio_venta_base) || 0,
+    precio_promotora: Number(product.precio_promotora) || 0
+  };
+}
+async function getInventoryByProduct(productId) {
+  const sql = `
+    SELECT 
+      i.id as inventario_id, i.sku, 
+      CAST(i.stock_actual AS SIGNED) as stock_actual, 
+      CAST(i.stock_minimo AS SIGNED) as stock_minimo,
+      t.nombre AS talla, col.nombre AS color,
+      p.detalle, 
+      CAST(p.precio_venta_base AS DECIMAL(10,2)) as precio_venta_base, 
+      CAST(p.precio_promotora AS DECIMAL(10,2)) as precio_promotora
+    FROM inventario i
+    JOIN productos p ON i.producto_id = p.id
+    JOIN tallas t ON i.talla_id = t.id
+    JOIN colores col ON i.color_id = col.id
+    WHERE i.producto_id = ? AND i.activo = TRUE AND i.stock_actual > 0
+    ORDER BY t.orden_display, col.nombre
+  `;
+  const rows = await executeQuery(sql, [productId]);
+  return rows.map((row) => ({
+    ...row,
+    stock_actual: Number(row.stock_actual) || 0,
+    stock_minimo: Number(row.stock_minimo) || 0,
+    precio_venta_base: Number(row.precio_venta_base) || 0,
+    precio_promotora: Number(row.precio_promotora) || 0
+  }));
+}
+async function getInventoryList() {
+  const sql = `
+    SELECT 
+      i.id,
+      i.sku,
+      i.producto_id,
+      CAST(i.stock_actual AS SIGNED) as stock_actual,
+      CAST(i.stock_minimo AS SIGNED) as stock_minimo,
+      i.ubicacion,
+      p.detalle,
+      p.codigo_interno,
+      m.nombre AS marca,
+      c.nombre AS categoria,
+      t.nombre AS talla,
+      col.nombre AS color
+    FROM inventario i
+    JOIN productos p ON i.producto_id = p.id
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN categorias c ON p.categoria_id = c.id
+    JOIN tallas t ON i.talla_id = t.id
+    JOIN colores col ON i.color_id = col.id
+    WHERE i.activo = TRUE
+    ORDER BY p.codigo_interno, t.orden_display, col.nombre
+  `;
+  const rows = await executeQuery(sql);
+  return rows.map((row) => ({
+    ...row,
+    stock_actual: Number(row.stock_actual) || 0,
+    stock_minimo: Number(row.stock_minimo) || 0
+  }));
+}
+async function getTallas() {
+  const sql = "SELECT id, nombre, orden_display FROM tallas WHERE activo = TRUE ORDER BY orden_display, nombre";
+  return await executeQuery(sql);
+}
+async function getColores() {
+  const sql = "SELECT id, nombre FROM colores WHERE activo = TRUE ORDER BY nombre";
+  return await executeQuery(sql);
+}
+async function createInventoryItem(data) {
+  const exists = await executeQuery("SELECT COUNT(*) as count FROM inventario WHERE producto_id = ? AND talla_id = ? AND color_id = ?", [data.producto_id, data.talla_id, data.color_id]);
+  if (exists[0].count > 0) {
+    return { success: false, error: "Ya existe inventario para esta combinación de producto, talla y color" };
+  }
+  const sql = `
+    INSERT INTO inventario (producto_id, talla_id, color_id, stock_actual, stock_minimo, ubicacion, activo)
+    VALUES (?, ?, ?, ?, ?, ?, TRUE)
+  `;
+  await executeQuery(sql, [data.producto_id, data.talla_id, data.color_id, data.stock_actual, data.stock_minimo, data.ubicacion || null]);
+  return { success: true };
+}
+async function updateInventoryStock(inventarioId, newStock) {
+  const sql = "UPDATE inventario SET stock_actual = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+  await executeQuery(sql, [newStock, inventarioId]);
+  return { success: true };
+}
+async function deleteInventoryItem(inventarioId) {
+  const hasSales = await executeQuery("SELECT COUNT(*) as count FROM detalle_ventas WHERE inventario_id = ?", [inventarioId]);
+  if (hasSales[0].count > 0) {
+    await executeQuery("UPDATE inventario SET activo = FALSE WHERE id = ?", [inventarioId]);
+  } else {
+    await executeQuery("DELETE FROM inventario WHERE id = ?", [inventarioId]);
+  }
+  return { success: true };
+}
+async function createSale(data) {
+  const sql = `CALL sp_realizar_venta(?, ?, ?, ?, ?, @venta_id, @mensaje)`;
+  await executeQuery(sql, [data.usuario_id, data.cliente_nombre, data.cliente_documento, data.metodo_pago, data.observaciones || ""]);
+  const result = await executeQuery("SELECT @venta_id as venta_id, @mensaje as mensaje");
+  return result[0];
+}
+async function addItemToSale(data) {
+  const sql = `CALL sp_agregar_articulo_venta(?, ?, ?, @mensaje)`;
+  await executeQuery(sql, [data.venta_id, data.inventario_id, data.cantidad]);
+  const result = await executeQuery("SELECT @mensaje as mensaje");
+  return result[0];
+}
+async function getSaleDetails(ventaId) {
+  const saleHeaderSql = `
+    SELECT 
+      v.id, v.numero_venta, v.fecha_venta, v.cliente_nombre, v.cliente_documento,
+      v.subtotal, v.descuento, v.total, v.metodo_pago, v.observaciones,
+      u.nombre AS vendedor, r.nombre AS rol_vendedor
+    FROM ventas v
+    JOIN usuarios u ON v.usuario_id = u.id
+    JOIN roles r ON u.rol_id = r.id
+    WHERE v.id = ?
+  `;
+  const saleDetailsSql = `
+    SELECT 
+      dv.cantidad, dv.precio_unitario, dv.subtotal,
+      i.sku, p.codigo_interno, p.detalle,
+      m.nombre AS marca, t.nombre AS talla, col.nombre AS color
+    FROM detalle_ventas dv
+    JOIN inventario i ON dv.inventario_id = i.id
+    JOIN productos p ON i.producto_id = p.id
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN tallas t ON i.talla_id = t.id
+    JOIN colores col ON i.color_id = col.id
+    WHERE dv.venta_id = ?
+    ORDER BY dv.id
+  `;
+  const header = await executeQuery(saleHeaderSql, [ventaId]);
+  const details = await executeQuery(saleDetailsSql, [ventaId]);
+  return {
+    header: header[0] || null,
+    details
+  };
+}
+async function getUserById(userId) {
+  const sql = `
+    SELECT 
+      u.id, u.nombre, u.usuario, u.email,
+      r.id as rol_id, r.nombre as rol_nombre
+    FROM usuarios u
+    JOIN roles r ON u.rol_id = r.id
+    WHERE u.id = ?
+  `;
+  const rows = await executeQuery(sql, [userId]);
+  return rows[0] || null;
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -19957,6 +20128,114 @@ ipcMain.handle("createCategory", async (_, data) => {
     return result;
   } catch (error) {
     console.error("Error al crear categoría:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getProductByCode", async (_, codigo) => {
+  try {
+    const product = await getProductByCode(codigo);
+    return product;
+  } catch (error) {
+    console.error("Error al buscar producto por código:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getInventoryByProduct", async (_, productId) => {
+  try {
+    const inventory = await getInventoryByProduct(productId);
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener inventario del producto:", error);
+    throw error;
+  }
+});
+ipcMain.handle("createSale", async (_, data) => {
+  try {
+    const result = await createSale(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear venta:", error);
+    throw error;
+  }
+});
+ipcMain.handle("addItemToSale", async (_, data) => {
+  try {
+    const result = await addItemToSale(data);
+    return result;
+  } catch (error) {
+    console.error("Error al agregar item a venta:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getSaleDetails", async (_, ventaId) => {
+  try {
+    const details = await getSaleDetails(ventaId);
+    return details;
+  } catch (error) {
+    console.error("Error al obtener detalles de venta:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getUserById", async (_, userId) => {
+  try {
+    const user = await getUserById(userId);
+    return user;
+  } catch (error) {
+    console.error("Error al obtener usuario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getInventoryList", async () => {
+  try {
+    const inventory = await getInventoryList();
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener inventario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getTallas", async () => {
+  try {
+    const tallas = await getTallas();
+    return tallas;
+  } catch (error) {
+    console.error("Error al obtener tallas:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getColores", async () => {
+  try {
+    const colores = await getColores();
+    return colores;
+  } catch (error) {
+    console.error("Error al obtener colores:", error);
+    throw error;
+  }
+});
+ipcMain.handle("createInventoryItem", async (_, data) => {
+  try {
+    const result = await createInventoryItem(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear item de inventario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("updateInventoryStock", async (_, inventarioId, newStock) => {
+  try {
+    const result = await updateInventoryStock(inventarioId, newStock);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar stock:", error);
+    throw error;
+  }
+});
+ipcMain.handle("deleteInventoryItem", async (_, inventarioId) => {
+  try {
+    const result = await deleteInventoryItem(inventarioId);
+    return result;
+  } catch (error) {
+    console.error("Error al eliminar item de inventario:", error);
     throw error;
   }
 });

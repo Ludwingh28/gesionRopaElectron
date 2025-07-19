@@ -18,6 +18,18 @@ import {
   getCategories,
   createBrand,
   createCategory,
+  getProductByCode,
+  getInventoryByProduct,
+  createSale,
+  addItemToSale,
+  getSaleDetails,
+  getUserById,
+  getInventoryList,
+  getTallas,
+  getColores,
+  createInventoryItem,
+  updateInventoryStock,
+  deleteInventoryItem,
 } from "./database";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -255,6 +267,128 @@ ipcMain.handle("createCategory", async (_, data) => {
     return result;
   } catch (error) {
     console.error("Error al crear categoría:", error);
+    throw error;
+  }
+});
+
+// Handlers para ventas
+ipcMain.handle("getProductByCode", async (_, codigo: string) => {
+  try {
+    const product = await getProductByCode(codigo);
+    return product;
+  } catch (error) {
+    console.error("Error al buscar producto por código:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getInventoryByProduct", async (_, productId: number) => {
+  try {
+    const inventory = await getInventoryByProduct(productId);
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener inventario del producto:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("createSale", async (_, data) => {
+  try {
+    const result = await createSale(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear venta:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("addItemToSale", async (_, data) => {
+  try {
+    const result = await addItemToSale(data);
+    return result;
+  } catch (error) {
+    console.error("Error al agregar item a venta:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getSaleDetails", async (_, ventaId: number) => {
+  try {
+    const details = await getSaleDetails(ventaId);
+    return details;
+  } catch (error) {
+    console.error("Error al obtener detalles de venta:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getUserById", async (_, userId: number) => {
+  try {
+    const user = await getUserById(userId);
+    return user;
+  } catch (error) {
+    console.error("Error al obtener usuario:", error);
+    throw error;
+  }
+});
+
+// Handlers para gestión de inventario
+ipcMain.handle("getInventoryList", async () => {
+  try {
+    const inventory = await getInventoryList();
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener inventario:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getTallas", async () => {
+  try {
+    const tallas = await getTallas();
+    return tallas;
+  } catch (error) {
+    console.error("Error al obtener tallas:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getColores", async () => {
+  try {
+    const colores = await getColores();
+    return colores;
+  } catch (error) {
+    console.error("Error al obtener colores:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("createInventoryItem", async (_, data) => {
+  try {
+    const result = await createInventoryItem(data);
+    return result;
+  } catch (error) {
+    console.error("Error al crear item de inventario:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("updateInventoryStock", async (_, inventarioId: number, newStock: number) => {
+  try {
+    const result = await updateInventoryStock(inventarioId, newStock);
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar stock:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("deleteInventoryItem", async (_, inventarioId: number) => {
+  try {
+    const result = await deleteInventoryItem(inventarioId);
+    return result;
+  } catch (error) {
+    console.error("Error al eliminar item de inventario:", error);
     throw error;
   }
 });
