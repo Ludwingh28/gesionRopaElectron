@@ -1,5 +1,6 @@
 import mysql, { ResultSetHeader } from "mysql2/promise";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 // Cargar las variables de entorno desde el archivo .env
 dotenv.config({ path: "electron/.env" });
@@ -26,6 +27,11 @@ export async function connectToDatabase(): Promise<void> {
   }
 }
 
+// Función para cifrar contraseñas con MD5
+export function encryptPassword(password: string): string {
+  return crypto.createHash("md5").update(password).digest("hex");
+}
+
 export async function executeQuery(sql: string, params?: any[]): Promise<any[]> {
   let connection: mysql.PoolConnection | undefined;
   try {
@@ -43,23 +49,25 @@ export async function executeQuery(sql: string, params?: any[]): Promise<any[]> 
 }
 
 export async function authenticateUser(username: string, password: string): Promise<any> {
-  const sql = `
-        SELECT
-            u.id,
-            u.nombre,
-            u.usuario,
-            u.email,
-            u.password_hash,
-            u.activo,
-            r.nombre AS rol_nombre
-        FROM
-            usuarios AS u
-        JOIN
-            roles AS r ON u.rol_id = r.id
-        WHERE
-            u.usuario = ? AND u.password_hash = ?`;
+  const hashedPassword = encryptPassword(password);
 
-  const rows = await executeQuery(sql, [username, password]);
+  const sql = `
+    SELECT
+        u.id,
+        u.nombre,
+        u.usuario,
+        u.email,
+        u.password_hash,
+        u.activo,
+        r.nombre AS rol_nombre
+    FROM
+        usuarios AS u
+    JOIN
+        roles AS r ON u.rol_id = r.id
+    WHERE
+        u.usuario = ? AND u.password_hash = ?`;
+
+  const rows = await executeQuery(sql, [username, hashedPassword]);
   return rows[0] || null;
 }
 
@@ -89,9 +97,13 @@ export async function createUser(data: any): Promise<any> {
   if (exists[0].count > 0) {
     return { success: false, error: "El usuario ya existe" };
   }
+
+  // Cifrar la contraseña
+  const hashedPassword = encryptPassword(data.password_hash);
+
   // Insertar usuario
   const sql = `INSERT INTO Usuarios (nombre, usuario, email, telefono, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo]);
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, hashedPassword, data.rol_id, data.activo]);
   return { success: true };
 }
 
@@ -101,8 +113,18 @@ export async function updateUser(data: any): Promise<any> {
   if (exists[0].count > 0) {
     return { success: false, error: "El usuario ya existe" };
   }
+  // Cifrar la contraseña si se proporciona una nueva
+  let hashedPassword = data.password_hash;
+  if (data.password_hash && data.password_hash.trim() !== "") {
+    hashedPassword = encryptPassword(data.password_hash);
+  } else {
+    // Si no se proporciona contraseña, mantener la actual
+    const currentUser = await executeQuery("SELECT password_hash FROM Usuarios WHERE id = ?", [data.id]);
+    hashedPassword = currentUser[0]?.password_hash;
+  }
+
   const sql = `UPDATE Usuarios SET nombre=?, usuario=?, email=?, telefono=?, password_hash=?, rol_id=?, activo=? WHERE id=?`;
-  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo, data.id]);
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, hashedPassword, data.rol_id, data.activo, data.id]);
   return { success: true };
 }
 
@@ -497,13 +519,19 @@ export async function getVentasPromotoraMes(userId: number): Promise<{ totalVent
     const fechaInicio = primerDia.toISOString().split("T")[0];
     const fechaFin = ultimoDia.toISOString().split("T")[0];
 
+    // SQL para calcular solo la comisión del 20% (diferencia entre precio promotora y precio base)
     const sql = `
       SELECT 
         COUNT(v.id) as total_ventas,
-        COALESCE(SUM(v.total), 0) as total_ganancias
+        COALESCE(SUM(
+          dv.cantidad * (dv.precio_unitario - p.precio_venta_base)
+        ), 0) as total_ganancias
       FROM ventas v
       JOIN usuarios u ON v.usuario_id = u.id
       JOIN roles r ON u.rol_id = r.id
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
       WHERE v.usuario_id = ?
       AND DATE(v.fecha_venta) BETWEEN ? AND ?
       AND v.estado = 'completada'
@@ -550,5 +578,411 @@ export async function getDashboardStats(userId: number, rolNombre: string): Prom
   } catch (error) {
     console.error("Error al obtener estadísticas del dashboard:", error);
     throw error;
+  }
+}
+
+// Función para agregar stock a inventario existente
+export async function addStockToInventory(inventarioId: number, cantidad: number, motivo: string, usuarioId: number): Promise<any> {
+  try {
+    // Obtener stock actual
+    const currentStock = await executeQuery("SELECT stock_actual FROM inventario WHERE id = ?", [inventarioId]);
+    if (currentStock.length === 0) {
+      return { success: false, error: "Item de inventario no encontrado" };
+    }
+
+    const stockAnterior = currentStock[0].stock_actual;
+    const stockNuevo = stockAnterior + cantidad;
+
+    // Actualizar stock
+    await executeQuery("UPDATE inventario SET stock_actual = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [stockNuevo, inventarioId]);
+
+    // Registrar movimiento
+    await executeQuery(
+      `
+      INSERT INTO movimientos_inventario 
+      (inventario_id, tipo_movimiento, cantidad, cantidad_anterior, cantidad_nueva, motivo, usuario_id)
+      VALUES (?, 'entrada', ?, ?, ?, ?, ?)
+    `,
+      [inventarioId, cantidad, stockAnterior, stockNuevo, motivo, usuarioId]
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error al agregar stock:", error);
+    return { success: false, error: "Error interno del servidor" };
+  }
+}
+
+// Función para buscar productos con su inventario
+export async function searchProductsWithInventory(search: string = ""): Promise<any[]> {
+  let sql = `
+    SELECT DISTINCT
+      p.id, p.codigo_interno, p.detalle, 
+      m.nombre AS marca, c.nombre AS categoria,
+      p.precio_venta_base, p.precio_promotora
+    FROM productos p
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN categorias c ON p.categoria_id = c.id
+    WHERE p.activo = TRUE
+  `;
+
+  const params: any[] = [];
+  if (search) {
+    sql += " AND (p.detalle LIKE ? OR p.codigo_interno LIKE ? OR m.nombre LIKE ?)";
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+
+  sql += " ORDER BY p.codigo_interno ASC";
+  return await executeQuery(sql, params);
+}
+
+// Función para obtener inventario de un producto específico
+export async function getProductInventoryDetails(productId: number): Promise<any[]> {
+  const sql = `
+    SELECT 
+      i.id as inventario_id,
+      i.sku,
+      i.stock_actual,
+      i.stock_minimo,
+      t.nombre AS talla,
+      col.nombre AS color,
+      i.ubicacion
+    FROM inventario i
+    JOIN tallas t ON i.talla_id = t.id
+    JOIN colores col ON i.color_id = col.id
+    WHERE i.producto_id = ? AND i.activo = TRUE
+    ORDER BY t.orden_display, col.nombre
+  `;
+
+  return await executeQuery(sql, [productId]);
+}
+
+// Función para obtener productos más vendidos
+export async function getProductosMasVendidos(fechaInicio?: string, fechaFin?: string, limite: number = 20): Promise<any[]> {
+  try {
+    // Si no se proporcionan fechas, usar el mes actual
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    const sql = `
+      SELECT 
+        p.codigo_interno,
+        p.detalle,
+        m.nombre AS marca,
+        c.nombre AS categoria,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM productos p
+      JOIN marcas m ON p.marca_id = m.id
+      JOIN categorias c ON p.categoria_id = c.id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY p.id, p.codigo_interno, p.detalle, m.nombre, c.nombre
+      ORDER BY total_vendido DESC
+      LIMIT ?
+    `;
+
+    return await executeQuery(sql, [fechaInicio, fechaFin, limite]);
+  } catch (error) {
+    console.error("Error al obtener productos más vendidos:", error);
+    return [];
+  }
+}
+
+// Función para obtener ranking de promotoras
+export async function getRankingPromotoras(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    // Si no se proporcionan fechas, usar el mes actual
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    const sql = `
+      SELECT 
+        u.nombre AS promotora,
+        u.email,
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        AVG(v.total) AS promedio_venta,
+        SUM(dv.cantidad * (dv.precio_unitario - p.precio_venta_base)) AS comision_ganada,
+        MIN(v.fecha_venta) AS primera_venta,
+        MAX(v.fecha_venta) AS ultima_venta
+      FROM usuarios u
+      JOIN roles r ON u.rol_id = r.id
+      JOIN ventas v ON u.id = v.usuario_id
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
+      WHERE r.nombre = 'promotora'
+      AND DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      AND u.activo = TRUE
+      GROUP BY u.id, u.nombre, u.email
+      ORDER BY total_facturado DESC
+    `;
+
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener ranking de promotoras:", error);
+    return [];
+  }
+}
+
+// Función para obtener comparativo de ventas mensuales
+export async function getComparativoVentasMensuales(mesesAtras: number = 12): Promise<any[]> {
+  try {
+    const sql = `
+      SELECT 
+        YEAR(v.fecha_venta) AS año,
+        MONTH(v.fecha_venta) AS mes,
+        MONTHNAME(v.fecha_venta) AS nombre_mes,
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        AVG(v.total) AS promedio_venta,
+        COUNT(DISTINCT v.usuario_id) AS vendedores_activos
+      FROM ventas v
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      WHERE v.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+      AND v.estado = 'completada'
+      GROUP BY YEAR(v.fecha_venta), MONTH(v.fecha_venta)
+      ORDER BY año DESC, mes DESC
+    `;
+
+    return await executeQuery(sql, [mesesAtras]);
+  } catch (error) {
+    console.error("Error al obtener comparativo de ventas:", error);
+    return [];
+  }
+}
+
+// Función para obtener análisis por categorías
+export async function getAnalisisPorCategorias(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    const sql = `
+      SELECT 
+        c.nombre AS categoria,
+        COUNT(DISTINCT p.id) AS productos_categoria,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM categorias c
+      JOIN productos p ON c.id = p.categoria_id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY c.id, c.nombre
+      ORDER BY total_vendido DESC
+    `;
+
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener análisis por categorías:", error);
+    return [];
+  }
+}
+
+// Función para obtener análisis por marcas
+export async function getAnalisisPorMarcas(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    const sql = `
+      SELECT 
+        m.nombre AS marca,
+        COUNT(DISTINCT p.id) AS productos_marca,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM marcas m
+      JOIN productos p ON m.id = p.marca_id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY m.id, m.nombre
+      ORDER BY total_vendido DESC
+    `;
+
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener análisis por marcas:", error);
+    return [];
+  }
+}
+
+// Función para obtener reporte de inventario crítico
+export async function getReporteInventarioCritico(): Promise<any[]> {
+  try {
+    const sql = `
+      SELECT 
+        i.sku,
+        p.codigo_interno,
+        p.detalle,
+        m.nombre AS marca,
+        c.nombre AS categoria,
+        t.nombre AS talla,
+        col.nombre AS color,
+        i.stock_actual,
+        i.stock_minimo,
+        (i.stock_minimo - i.stock_actual) AS deficit,
+        p.precio_venta_base,
+        (i.stock_minimo - i.stock_actual) * p.costo_compra AS valor_reposicion_sugerida
+      FROM inventario i
+      JOIN productos p ON i.producto_id = p.id
+      JOIN marcas m ON p.marca_id = m.id
+      JOIN categorias c ON p.categoria_id = c.id
+      JOIN tallas t ON i.talla_id = t.id
+      JOIN colores col ON i.color_id = col.id
+      WHERE i.stock_actual <= i.stock_minimo
+      AND i.activo = TRUE
+      ORDER BY deficit DESC, valor_reposicion_sugerida DESC
+    `;
+
+    return await executeQuery(sql);
+  } catch (error) {
+    console.error("Error al obtener reporte de inventario crítico:", error);
+    return [];
+  }
+}
+
+// Función para obtener ventas por métodos de pago
+export async function getVentasPorMetodoPago(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    const sql = `
+      SELECT 
+        metodo_pago,
+        COUNT(*) AS numero_transacciones,
+        SUM(total) AS total_facturado,
+        AVG(total) AS promedio_transaccion,
+        MIN(total) AS minimo_transaccion,
+        MAX(total) AS maximo_transaccion
+      FROM ventas
+      WHERE DATE(fecha_venta) BETWEEN ? AND ?
+      AND estado = 'completada'
+      GROUP BY metodo_pago
+      ORDER BY total_facturado DESC
+    `;
+
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener ventas por método de pago:", error);
+    return [];
+  }
+}
+
+// Función para obtener resumen ejecutivo de reportes
+export async function getResumenEjecutivo(fechaInicio?: string, fechaFin?: string): Promise<any> {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+
+    // Obtener estadísticas generales
+    const sqlGeneral = `
+      SELECT 
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        AVG(v.total) AS promedio_venta,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        COUNT(DISTINCT v.usuario_id) AS vendedores_activos,
+        COUNT(DISTINCT p.id) AS productos_vendidos
+      FROM ventas v
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+    `;
+
+    // Obtener top 3 productos
+    const sqlTopProductos = `
+      SELECT p.detalle, SUM(dv.cantidad) AS cantidad
+      FROM productos p
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY p.id, p.detalle
+      ORDER BY cantidad DESC
+      LIMIT 3
+    `;
+
+    // Obtener top 3 promotoras
+    const sqlTopPromotoras = `
+      SELECT u.nombre, SUM(v.total) AS total
+      FROM usuarios u
+      JOIN roles r ON u.rol_id = r.id
+      JOIN ventas v ON u.id = v.usuario_id
+      WHERE r.nombre = 'promotora'
+      AND DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY u.id, u.nombre
+      ORDER BY total DESC
+      LIMIT 3
+    `;
+
+    const [general, topProductos, topPromotoras] = await Promise.all([
+      executeQuery(sqlGeneral, [fechaInicio, fechaFin]),
+      executeQuery(sqlTopProductos, [fechaInicio, fechaFin]),
+      executeQuery(sqlTopPromotoras, [fechaInicio, fechaFin]),
+    ]);
+
+    return {
+      periodo: { fechaInicio, fechaFin },
+      estadisticas: general[0] || {},
+      topProductos: topProductos,
+      topPromotoras: topPromotoras,
+    };
+  } catch (error) {
+    console.error("Error al obtener resumen ejecutivo:", error);
+    return null;
   }
 }

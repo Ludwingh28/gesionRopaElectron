@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { User, ShoppingCart, Package, TrendingUp, Calendar, DollarSign, Users, AlertTriangle, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, ShoppingCart, Package, TrendingUp, DollarSign, Users, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface CurrentUser {
   id: number;
@@ -244,7 +244,7 @@ const Home = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 <Card title="Ventas Realizadas" value={stats.ventasMes || 0} icon={ShoppingCart} color="bg-green-50 dark:bg-green-900/20" textColor="text-green-700 dark:text-green-400" />
                 <Card
-                  title="Ganancias del Mes"
+                  title="Comisión del Mes (20%)"
                   value={`Bs. ${stats.gananciasMes?.toLocaleString() || "0"}`}
                   icon={TrendingUp}
                   color="bg-blue-50 dark:bg-blue-900/20"
@@ -258,8 +258,8 @@ const Home = () => {
                   <TrendingUp className="mr-3 text-orange-600 dark:text-orange-400" size={24} />
                   <h3 className="text-xl font-bold text-orange-800 dark:text-orange-300">Beneficio Especial Promotora</h3>
                 </div>
-                <p className="text-orange-700 dark:text-orange-400 mb-2">Como promotora, tienes acceso a precios especiales con un incremento del 20% sobre el precio base.</p>
-                <p className="text-sm text-orange-600 dark:text-orange-500">* Las ganancias mostradas incluyen tu comisión especial del 20%</p>
+                <p className="text-orange-700 dark:text-orange-400 mb-2">Como promotora, vendes con precios 20% más altos que el precio base. Esta comisión del 20% es tu ganancia.</p>
+                <p className="text-sm text-orange-600 dark:text-orange-500">* Ejemplo: Si admin vende a Bs. 100, tú vendes a Bs. 120 y ganas Bs. 20 de comisión</p>
               </div>
 
               <div className="bg-gradient-to-r from-[#f8cdd2] to-[#e87e8a] dark:from-[#d6a463] dark:to-[#b8934f] rounded-xl p-6 text-white">

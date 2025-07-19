@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Plus, Trash2, ShoppingCart, User, CreditCard, FileText, Printer, X } from "lucide-react";
 
 interface Product {

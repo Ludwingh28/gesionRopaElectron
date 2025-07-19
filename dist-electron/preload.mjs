@@ -51,7 +51,20 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   getDashboardStats: (userId, rolNombre) => electron.ipcRenderer.invoke("getDashboardStats", userId, rolNombre),
   getVentasHoy: () => electron.ipcRenderer.invoke("getVentasHoy"),
   getStockStats: () => electron.ipcRenderer.invoke("getStockStats"),
-  getVentasPromotoraMes: (userId) => electron.ipcRenderer.invoke("getVentasPromotoraMes", userId)
+  getVentasPromotoraMes: (userId) => electron.ipcRenderer.invoke("getVentasPromotoraMes", userId),
+  // APIs para gestión de entrada de productos/inventario
+  addStockToInventory: (inventarioId, cantidad, motivo, usuarioId) => electron.ipcRenderer.invoke("addStockToInventory", inventarioId, cantidad, motivo, usuarioId),
+  searchProductsWithInventory: (search) => electron.ipcRenderer.invoke("searchProductsWithInventory", search),
+  getProductInventoryDetails: (productId) => electron.ipcRenderer.invoke("getProductInventoryDetails", productId),
+  // APIs para reportes
+  getProductosMasVendidos: (fechaInicio, fechaFin, limite) => electron.ipcRenderer.invoke("getProductosMasVendidos", fechaInicio, fechaFin, limite),
+  getRankingPromotoras: (fechaInicio, fechaFin) => electron.ipcRenderer.invoke("getRankingPromotoras", fechaInicio, fechaFin),
+  getComparativoVentasMensuales: (mesesAtras) => electron.ipcRenderer.invoke("getComparativoVentasMensuales", mesesAtras),
+  getAnalisisPorCategorias: (fechaInicio, fechaFin) => electron.ipcRenderer.invoke("getAnalisisPorCategorias", fechaInicio, fechaFin),
+  getAnalisisPorMarcas: (fechaInicio, fechaFin) => electron.ipcRenderer.invoke("getAnalisisPorMarcas", fechaInicio, fechaFin),
+  getReporteInventarioCritico: () => electron.ipcRenderer.invoke("getReporteInventarioCritico"),
+  getVentasPorMetodoPago: (fechaInicio, fechaFin) => electron.ipcRenderer.invoke("getVentasPorMetodoPago", fechaInicio, fechaFin),
+  getResumenEjecutivo: (fechaInicio, fechaFin) => electron.ipcRenderer.invoke("getResumenEjecutivo", fechaInicio, fechaFin)
   // You can expose other APTs you need here.
   // ...
 });

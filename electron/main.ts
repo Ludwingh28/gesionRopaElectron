@@ -34,6 +34,17 @@ import {
   getStockStats,
   getVentasPromotoraMes,
   getDashboardStats,
+  addStockToInventory,
+  searchProductsWithInventory,
+  getProductInventoryDetails,
+  getProductosMasVendidos,
+  getRankingPromotoras,
+  getComparativoVentasMensuales,
+  getAnalisisPorCategorias,
+  getAnalisisPorMarcas,
+  getReporteInventarioCritico,
+  getVentasPorMetodoPago,
+  getResumenEjecutivo,
 } from "./database";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -437,6 +448,120 @@ ipcMain.handle("getVentasPromotoraMes", async (_, userId: number) => {
     return stats;
   } catch (error) {
     console.error("Error al obtener ventas de promotora del mes:", error);
+    throw error;
+  }
+});
+
+// Handler para agregar stock a inventario existente
+ipcMain.handle("addStockToInventory", async (_, inventarioId: number, cantidad: number, motivo: string, usuarioId: number) => {
+  try {
+    const result = await addStockToInventory(inventarioId, cantidad, motivo, usuarioId);
+    return result;
+  } catch (error) {
+    console.error("Error al agregar stock:", error);
+    throw error;
+  }
+});
+
+// Handler para buscar productos con inventario
+ipcMain.handle("searchProductsWithInventory", async (_, search: string = "") => {
+  try {
+    const products = await searchProductsWithInventory(search);
+    return products;
+  } catch (error) {
+    console.error("Error al buscar productos con inventario:", error);
+    throw error;
+  }
+});
+
+// Handler para obtener detalles de inventario de un producto
+ipcMain.handle("getProductInventoryDetails", async (_, productId: number) => {
+  try {
+    const inventory = await getProductInventoryDetails(productId);
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener detalles de inventario:", error);
+    throw error;
+  }
+});
+
+// Handlers para reportes
+ipcMain.handle("getProductosMasVendidos", async (_, fechaInicio?: string, fechaFin?: string, limite: number = 20) => {
+  try {
+    const result = await getProductosMasVendidos(fechaInicio, fechaFin, limite);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener productos más vendidos:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getRankingPromotoras", async (_, fechaInicio?: string, fechaFin?: string) => {
+  try {
+    const result = await getRankingPromotoras(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener ranking de promotoras:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getComparativoVentasMensuales", async (_, mesesAtras: number = 12) => {
+  try {
+    const result = await getComparativoVentasMensuales(mesesAtras);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener comparativo ventas mensuales:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getAnalisisPorCategorias", async (_, fechaInicio?: string, fechaFin?: string) => {
+  try {
+    const result = await getAnalisisPorCategorias(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener análisis por categorías:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getAnalisisPorMarcas", async (_, fechaInicio?: string, fechaFin?: string) => {
+  try {
+    const result = await getAnalisisPorMarcas(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener análisis por marcas:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getReporteInventarioCritico", async () => {
+  try {
+    const result = await getReporteInventarioCritico();
+    return result;
+  } catch (error) {
+    console.error("Error al obtener reporte inventario crítico:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getVentasPorMetodoPago", async (_, fechaInicio?: string, fechaFin?: string) => {
+  try {
+    const result = await getVentasPorMetodoPago(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener ventas por método de pago:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("getResumenEjecutivo", async (_, fechaInicio?: string, fechaFin?: string) => {
+  try {
+    const result = await getResumenEjecutivo(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener resumen ejecutivo:", error);
     throw error;
   }
 });

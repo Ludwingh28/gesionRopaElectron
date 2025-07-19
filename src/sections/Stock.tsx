@@ -1,5 +1,3 @@
-// Stock.tsx modificado - Solo visualizar, editar y eliminar con paginación
-
 import React, { useState, useEffect } from "react";
 import { Package, Trash2, AlertTriangle, RefreshCw, Eye, TrendingDown } from "lucide-react";
 

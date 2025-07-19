@@ -69,6 +69,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getVentasHoy: () => ipcRenderer.invoke("getVentasHoy"),
   getStockStats: () => ipcRenderer.invoke("getStockStats"),
   getVentasPromotoraMes: (userId: number) => ipcRenderer.invoke("getVentasPromotoraMes", userId),
+  // APIs para gestión de entrada de productos/inventario
+  addStockToInventory: (inventarioId: number, cantidad: number, motivo: string, usuarioId: number) => ipcRenderer.invoke("addStockToInventory", inventarioId, cantidad, motivo, usuarioId),
+  searchProductsWithInventory: (search?: string) => ipcRenderer.invoke("searchProductsWithInventory", search),
+  getProductInventoryDetails: (productId: number) => ipcRenderer.invoke("getProductInventoryDetails", productId),
+  // APIs para reportes
+  getProductosMasVendidos: (fechaInicio?: string, fechaFin?: string, limite?: number) => ipcRenderer.invoke("getProductosMasVendidos", fechaInicio, fechaFin, limite),
+  getRankingPromotoras: (fechaInicio?: string, fechaFin?: string) => ipcRenderer.invoke("getRankingPromotoras", fechaInicio, fechaFin),
+  getComparativoVentasMensuales: (mesesAtras?: number) => ipcRenderer.invoke("getComparativoVentasMensuales", mesesAtras),
+  getAnalisisPorCategorias: (fechaInicio?: string, fechaFin?: string) => ipcRenderer.invoke("getAnalisisPorCategorias", fechaInicio, fechaFin),
+  getAnalisisPorMarcas: (fechaInicio?: string, fechaFin?: string) => ipcRenderer.invoke("getAnalisisPorMarcas", fechaInicio, fechaFin),
+  getReporteInventarioCritico: () => ipcRenderer.invoke("getReporteInventarioCritico"),
+  getVentasPorMetodoPago: (fechaInicio?: string, fechaFin?: string) => ipcRenderer.invoke("getVentasPorMetodoPago", fechaInicio, fechaFin),
+  getResumenEjecutivo: (fechaInicio?: string, fechaFin?: string) => ipcRenderer.invoke("getResumenEjecutivo", fechaInicio, fechaFin),
   // You can expose other APTs you need here.
   // ...
 });

@@ -66,8 +66,17 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
       setLoading(false);
       return;
     }
+
+    // Preparar datos para enviar
+    const dataToSend = { ...form };
+
+    // Si es edición y no se cambió la contraseña, no enviarla
+    if (user && !form.password_hash.trim()) {
+      delete dataToSend.password_hash;
+    }
+
     try {
-      await onSave(form);
+      await onSave(dataToSend);
     } catch (err: any) {
       setError(err.message || "Error al guardar usuario");
     }
@@ -79,15 +88,10 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 dark:bg-gray-900/30">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer"
-        >
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-3xl font-bold cursor-pointer">
           ×
         </button>
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          {user ? "Editar Usuario" : "Agregar Usuario"}
-        </h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">{user ? "Editar Usuario" : "Agregar Usuario"}</h2>
         {error && <div className="text-red-500 mb-2 text-center">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="flex gap-2">
@@ -136,7 +140,9 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
             >
               <option value="">Selecciona un rol</option>
               {roles.map((rol) => (
-                <option key={rol.id} value={rol.id}>{rol.nombre}</option>
+                <option key={rol.id} value={rol.id}>
+                  {rol.nombre}
+                </option>
               ))}
             </select>
             <div className="w-1/2 flex items-center relative">
@@ -162,13 +168,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, onSave, user, roles }) => 
           </div>
           <div className="flex items-center gap-2">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="activo"
-                checked={!!form.activo}
-                onChange={handleChange}
-                className="form-checkbox h-5 w-5 text-green-600"
-              />
+              <input type="checkbox" name="activo" checked={!!form.activo} onChange={handleChange} className="form-checkbox h-5 w-5 text-green-600" />
               <span className="text-gray-700 dark:text-gray-200">Activo</span>
             </label>
           </div>

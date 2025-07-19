@@ -66,6 +66,19 @@ interface ElectronAPI {
   getVentasHoy: () => Promise<{ totalVentas: number; totalPedidos: number }>;
   getStockStats: () => Promise<{ stockTotal: number; stockBajo: number }>;
   getVentasPromotoraMes: (userId: number) => Promise<{ totalVentas: number; totalGanancias: number }>;
+  // APIs para gestión de entrada de productos/inventario
+  addStockToInventory: (inventarioId: number, cantidad: number, motivo: string, usuarioId: number) => Promise<any>;
+  searchProductsWithInventory: (search?: string) => Promise<any[]>;
+  getProductInventoryDetails: (productId: number) => Promise<any[]>;
+  // APIs para reportes
+  getProductosMasVendidos: (fechaInicio?: string, fechaFin?: string, limite?: number) => Promise<any[]>;
+  getRankingPromotoras: (fechaInicio?: string, fechaFin?: string) => Promise<any[]>;
+  getComparativoVentasMensuales: (mesesAtras?: number) => Promise<any[]>;
+  getAnalisisPorCategorias: (fechaInicio?: string, fechaFin?: string) => Promise<any[]>;
+  getAnalisisPorMarcas: (fechaInicio?: string, fechaFin?: string) => Promise<any[]>;
+  getReporteInventarioCritico: () => Promise<any[]>;
+  getVentasPorMetodoPago: (fechaInicio?: string, fechaFin?: string) => Promise<any[]>;
+  getResumenEjecutivo: (fechaInicio?: string, fechaFin?: string) => Promise<any>;
 }
 
 // Gestión de inventario

@@ -19641,6 +19641,9 @@ async function connectToDatabase() {
     throw error;
   }
 }
+function encryptPassword(password) {
+  return require$$0$2.createHash("md5").update(password).digest("hex");
+}
 async function executeQuery(sql, params) {
   let connection2;
   try {
@@ -19657,22 +19660,23 @@ async function executeQuery(sql, params) {
   }
 }
 async function authenticateUser(username, password) {
+  const hashedPassword = encryptPassword(password);
   const sql = `
-        SELECT
-            u.id,
-            u.nombre,
-            u.usuario,
-            u.email,
-            u.password_hash,
-            u.activo,
-            r.nombre AS rol_nombre
-        FROM
-            usuarios AS u
-        JOIN
-            roles AS r ON u.rol_id = r.id
-        WHERE
-            u.usuario = ? AND u.password_hash = ?`;
-  const rows = await executeQuery(sql, [username, password]);
+    SELECT
+        u.id,
+        u.nombre,
+        u.usuario,
+        u.email,
+        u.password_hash,
+        u.activo,
+        r.nombre AS rol_nombre
+    FROM
+        usuarios AS u
+    JOIN
+        roles AS r ON u.rol_id = r.id
+    WHERE
+        u.usuario = ? AND u.password_hash = ?`;
+  const rows = await executeQuery(sql, [username, hashedPassword]);
   return rows[0] || null;
 }
 async function getUsers(search = "") {
@@ -19698,17 +19702,26 @@ async function createUser(data) {
   if (exists[0].count > 0) {
     return { success: false, error: "El usuario ya existe" };
   }
+  const hashedPassword = encryptPassword(data.password_hash);
   const sql = `INSERT INTO Usuarios (nombre, usuario, email, telefono, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo]);
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, hashedPassword, data.rol_id, data.activo]);
   return { success: true };
 }
 async function updateUser(data) {
+  var _a;
   const exists = await executeQuery("SELECT COUNT(*) as count FROM Usuarios WHERE usuario = ? AND id != ?", [data.usuario, data.id]);
   if (exists[0].count > 0) {
     return { success: false, error: "El usuario ya existe" };
   }
+  let hashedPassword = data.password_hash;
+  if (data.password_hash && data.password_hash.trim() !== "") {
+    hashedPassword = encryptPassword(data.password_hash);
+  } else {
+    const currentUser = await executeQuery("SELECT password_hash FROM Usuarios WHERE id = ?", [data.id]);
+    hashedPassword = (_a = currentUser[0]) == null ? void 0 : _a.password_hash;
+  }
   const sql = `UPDATE Usuarios SET nombre=?, usuario=?, email=?, telefono=?, password_hash=?, rol_id=?, activo=? WHERE id=?`;
-  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, data.password_hash, data.rol_id, data.activo, data.id]);
+  await executeQuery(sql, [data.nombre, data.usuario, data.email, data.telefono, hashedPassword, data.rol_id, data.activo, data.id]);
   return { success: true };
 }
 async function getRoles() {
@@ -19995,10 +20008,15 @@ async function getVentasPromotoraMes(userId) {
     const sql = `
       SELECT 
         COUNT(v.id) as total_ventas,
-        COALESCE(SUM(v.total), 0) as total_ganancias
+        COALESCE(SUM(
+          dv.cantidad * (dv.precio_unitario - p.precio_venta_base)
+        ), 0) as total_ganancias
       FROM ventas v
       JOIN usuarios u ON v.usuario_id = u.id
       JOIN roles r ON u.rol_id = r.id
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
       WHERE v.usuario_id = ?
       AND DATE(v.fecha_venta) BETWEEN ? AND ?
       AND v.estado = 'completada'
@@ -20038,6 +20056,358 @@ async function getDashboardStats(userId, rolNombre) {
   } catch (error) {
     console.error("Error al obtener estadísticas del dashboard:", error);
     throw error;
+  }
+}
+async function addStockToInventory(inventarioId, cantidad, motivo, usuarioId) {
+  try {
+    const currentStock = await executeQuery("SELECT stock_actual FROM inventario WHERE id = ?", [inventarioId]);
+    if (currentStock.length === 0) {
+      return { success: false, error: "Item de inventario no encontrado" };
+    }
+    const stockAnterior = currentStock[0].stock_actual;
+    const stockNuevo = stockAnterior + cantidad;
+    await executeQuery("UPDATE inventario SET stock_actual = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [stockNuevo, inventarioId]);
+    await executeQuery(
+      `
+      INSERT INTO movimientos_inventario 
+      (inventario_id, tipo_movimiento, cantidad, cantidad_anterior, cantidad_nueva, motivo, usuario_id)
+      VALUES (?, 'entrada', ?, ?, ?, ?, ?)
+    `,
+      [inventarioId, cantidad, stockAnterior, stockNuevo, motivo, usuarioId]
+    );
+    return { success: true };
+  } catch (error) {
+    console.error("Error al agregar stock:", error);
+    return { success: false, error: "Error interno del servidor" };
+  }
+}
+async function searchProductsWithInventory(search = "") {
+  let sql = `
+    SELECT DISTINCT
+      p.id, p.codigo_interno, p.detalle, 
+      m.nombre AS marca, c.nombre AS categoria,
+      p.precio_venta_base, p.precio_promotora
+    FROM productos p
+    JOIN marcas m ON p.marca_id = m.id
+    JOIN categorias c ON p.categoria_id = c.id
+    WHERE p.activo = TRUE
+  `;
+  const params = [];
+  if (search) {
+    sql += " AND (p.detalle LIKE ? OR p.codigo_interno LIKE ? OR m.nombre LIKE ?)";
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  sql += " ORDER BY p.codigo_interno ASC";
+  return await executeQuery(sql, params);
+}
+async function getProductInventoryDetails(productId) {
+  const sql = `
+    SELECT 
+      i.id as inventario_id,
+      i.sku,
+      i.stock_actual,
+      i.stock_minimo,
+      t.nombre AS talla,
+      col.nombre AS color,
+      i.ubicacion
+    FROM inventario i
+    JOIN tallas t ON i.talla_id = t.id
+    JOIN colores col ON i.color_id = col.id
+    WHERE i.producto_id = ? AND i.activo = TRUE
+    ORDER BY t.orden_display, col.nombre
+  `;
+  return await executeQuery(sql, [productId]);
+}
+async function getProductosMasVendidos(fechaInicio, fechaFin, limite = 20) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sql = `
+      SELECT 
+        p.codigo_interno,
+        p.detalle,
+        m.nombre AS marca,
+        c.nombre AS categoria,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM productos p
+      JOIN marcas m ON p.marca_id = m.id
+      JOIN categorias c ON p.categoria_id = c.id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY p.id, p.codigo_interno, p.detalle, m.nombre, c.nombre
+      ORDER BY total_vendido DESC
+      LIMIT ?
+    `;
+    return await executeQuery(sql, [fechaInicio, fechaFin, limite]);
+  } catch (error) {
+    console.error("Error al obtener productos más vendidos:", error);
+    return [];
+  }
+}
+async function getRankingPromotoras(fechaInicio, fechaFin) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sql = `
+      SELECT 
+        u.nombre AS promotora,
+        u.email,
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        AVG(v.total) AS promedio_venta,
+        SUM(dv.cantidad * (dv.precio_unitario - p.precio_venta_base)) AS comision_ganada,
+        MIN(v.fecha_venta) AS primera_venta,
+        MAX(v.fecha_venta) AS ultima_venta
+      FROM usuarios u
+      JOIN roles r ON u.rol_id = r.id
+      JOIN ventas v ON u.id = v.usuario_id
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
+      WHERE r.nombre = 'promotora'
+      AND DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      AND u.activo = TRUE
+      GROUP BY u.id, u.nombre, u.email
+      ORDER BY total_facturado DESC
+    `;
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener ranking de promotoras:", error);
+    return [];
+  }
+}
+async function getComparativoVentasMensuales(mesesAtras = 12) {
+  try {
+    const sql = `
+      SELECT 
+        YEAR(v.fecha_venta) AS año,
+        MONTH(v.fecha_venta) AS mes,
+        MONTHNAME(v.fecha_venta) AS nombre_mes,
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        AVG(v.total) AS promedio_venta,
+        COUNT(DISTINCT v.usuario_id) AS vendedores_activos
+      FROM ventas v
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      WHERE v.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+      AND v.estado = 'completada'
+      GROUP BY YEAR(v.fecha_venta), MONTH(v.fecha_venta)
+      ORDER BY año DESC, mes DESC
+    `;
+    return await executeQuery(sql, [mesesAtras]);
+  } catch (error) {
+    console.error("Error al obtener comparativo de ventas:", error);
+    return [];
+  }
+}
+async function getAnalisisPorCategorias(fechaInicio, fechaFin) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sql = `
+      SELECT 
+        c.nombre AS categoria,
+        COUNT(DISTINCT p.id) AS productos_categoria,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM categorias c
+      JOIN productos p ON c.id = p.categoria_id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY c.id, c.nombre
+      ORDER BY total_vendido DESC
+    `;
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener análisis por categorías:", error);
+    return [];
+  }
+}
+async function getAnalisisPorMarcas(fechaInicio, fechaFin) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sql = `
+      SELECT 
+        m.nombre AS marca,
+        COUNT(DISTINCT p.id) AS productos_marca,
+        SUM(dv.cantidad) AS total_vendido,
+        SUM(dv.subtotal) AS total_facturado,
+        AVG(dv.precio_unitario) AS precio_promedio,
+        COUNT(DISTINCT v.id) AS numero_ventas
+      FROM marcas m
+      JOIN productos p ON m.id = p.marca_id
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY m.id, m.nombre
+      ORDER BY total_vendido DESC
+    `;
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener análisis por marcas:", error);
+    return [];
+  }
+}
+async function getReporteInventarioCritico() {
+  try {
+    const sql = `
+      SELECT 
+        i.sku,
+        p.codigo_interno,
+        p.detalle,
+        m.nombre AS marca,
+        c.nombre AS categoria,
+        t.nombre AS talla,
+        col.nombre AS color,
+        i.stock_actual,
+        i.stock_minimo,
+        (i.stock_minimo - i.stock_actual) AS deficit,
+        p.precio_venta_base,
+        (i.stock_minimo - i.stock_actual) * p.costo_compra AS valor_reposicion_sugerida
+      FROM inventario i
+      JOIN productos p ON i.producto_id = p.id
+      JOIN marcas m ON p.marca_id = m.id
+      JOIN categorias c ON p.categoria_id = c.id
+      JOIN tallas t ON i.talla_id = t.id
+      JOIN colores col ON i.color_id = col.id
+      WHERE i.stock_actual <= i.stock_minimo
+      AND i.activo = TRUE
+      ORDER BY deficit DESC, valor_reposicion_sugerida DESC
+    `;
+    return await executeQuery(sql);
+  } catch (error) {
+    console.error("Error al obtener reporte de inventario crítico:", error);
+    return [];
+  }
+}
+async function getVentasPorMetodoPago(fechaInicio, fechaFin) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sql = `
+      SELECT 
+        metodo_pago,
+        COUNT(*) AS numero_transacciones,
+        SUM(total) AS total_facturado,
+        AVG(total) AS promedio_transaccion,
+        MIN(total) AS minimo_transaccion,
+        MAX(total) AS maximo_transaccion
+      FROM ventas
+      WHERE DATE(fecha_venta) BETWEEN ? AND ?
+      AND estado = 'completada'
+      GROUP BY metodo_pago
+      ORDER BY total_facturado DESC
+    `;
+    return await executeQuery(sql, [fechaInicio, fechaFin]);
+  } catch (error) {
+    console.error("Error al obtener ventas por método de pago:", error);
+    return [];
+  }
+}
+async function getResumenEjecutivo(fechaInicio, fechaFin) {
+  try {
+    if (!fechaInicio || !fechaFin) {
+      const now = /* @__PURE__ */ new Date();
+      const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+      const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      fechaInicio = primerDia.toISOString().split("T")[0];
+      fechaFin = ultimoDia.toISOString().split("T")[0];
+    }
+    const sqlGeneral = `
+      SELECT 
+        COUNT(DISTINCT v.id) AS total_ventas,
+        SUM(v.total) AS total_facturado,
+        AVG(v.total) AS promedio_venta,
+        SUM(dv.cantidad) AS articulos_vendidos,
+        COUNT(DISTINCT v.usuario_id) AS vendedores_activos,
+        COUNT(DISTINCT p.id) AS productos_vendidos
+      FROM ventas v
+      JOIN detalle_ventas dv ON v.id = dv.venta_id
+      JOIN inventario i ON dv.inventario_id = i.id
+      JOIN productos p ON i.producto_id = p.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+    `;
+    const sqlTopProductos = `
+      SELECT p.detalle, SUM(dv.cantidad) AS cantidad
+      FROM productos p
+      JOIN inventario i ON p.id = i.producto_id
+      JOIN detalle_ventas dv ON i.id = dv.inventario_id
+      JOIN ventas v ON dv.venta_id = v.id
+      WHERE DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY p.id, p.detalle
+      ORDER BY cantidad DESC
+      LIMIT 3
+    `;
+    const sqlTopPromotoras = `
+      SELECT u.nombre, SUM(v.total) AS total
+      FROM usuarios u
+      JOIN roles r ON u.rol_id = r.id
+      JOIN ventas v ON u.id = v.usuario_id
+      WHERE r.nombre = 'promotora'
+      AND DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      GROUP BY u.id, u.nombre
+      ORDER BY total DESC
+      LIMIT 3
+    `;
+    const [general, topProductos, topPromotoras] = await Promise.all([
+      executeQuery(sqlGeneral, [fechaInicio, fechaFin]),
+      executeQuery(sqlTopProductos, [fechaInicio, fechaFin]),
+      executeQuery(sqlTopPromotoras, [fechaInicio, fechaFin])
+    ]);
+    return {
+      periodo: { fechaInicio, fechaFin },
+      estadisticas: general[0] || {},
+      topProductos,
+      topPromotoras
+    };
+  } catch (error) {
+    console.error("Error al obtener resumen ejecutivo:", error);
+    return null;
   }
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20374,6 +20744,105 @@ ipcMain.handle("getVentasPromotoraMes", async (_, userId) => {
     return stats;
   } catch (error) {
     console.error("Error al obtener ventas de promotora del mes:", error);
+    throw error;
+  }
+});
+ipcMain.handle("addStockToInventory", async (_, inventarioId, cantidad, motivo, usuarioId) => {
+  try {
+    const result = await addStockToInventory(inventarioId, cantidad, motivo, usuarioId);
+    return result;
+  } catch (error) {
+    console.error("Error al agregar stock:", error);
+    throw error;
+  }
+});
+ipcMain.handle("searchProductsWithInventory", async (_, search = "") => {
+  try {
+    const products = await searchProductsWithInventory(search);
+    return products;
+  } catch (error) {
+    console.error("Error al buscar productos con inventario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getProductInventoryDetails", async (_, productId) => {
+  try {
+    const inventory = await getProductInventoryDetails(productId);
+    return inventory;
+  } catch (error) {
+    console.error("Error al obtener detalles de inventario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getProductosMasVendidos", async (_, fechaInicio, fechaFin, limite = 20) => {
+  try {
+    const result = await getProductosMasVendidos(fechaInicio, fechaFin, limite);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener productos más vendidos:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getRankingPromotoras", async (_, fechaInicio, fechaFin) => {
+  try {
+    const result = await getRankingPromotoras(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener ranking de promotoras:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getComparativoVentasMensuales", async (_, mesesAtras = 12) => {
+  try {
+    const result = await getComparativoVentasMensuales(mesesAtras);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener comparativo ventas mensuales:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getAnalisisPorCategorias", async (_, fechaInicio, fechaFin) => {
+  try {
+    const result = await getAnalisisPorCategorias(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener análisis por categorías:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getAnalisisPorMarcas", async (_, fechaInicio, fechaFin) => {
+  try {
+    const result = await getAnalisisPorMarcas(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener análisis por marcas:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getReporteInventarioCritico", async () => {
+  try {
+    const result = await getReporteInventarioCritico();
+    return result;
+  } catch (error) {
+    console.error("Error al obtener reporte inventario crítico:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getVentasPorMetodoPago", async (_, fechaInicio, fechaFin) => {
+  try {
+    const result = await getVentasPorMetodoPago(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener ventas por método de pago:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getResumenEjecutivo", async (_, fechaInicio, fechaFin) => {
+  try {
+    const result = await getResumenEjecutivo(fechaInicio, fechaFin);
+    return result;
+  } catch (error) {
+    console.error("Error al obtener resumen ejecutivo:", error);
     throw error;
   }
 });
