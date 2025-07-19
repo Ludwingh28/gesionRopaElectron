@@ -1,0 +1,124 @@
+-- =====================================================
+-- SCRIPT PARA CREAR INVENTARIO DE PRODUCTOS EXISTENTES
+-- Ejecutar DESPUÉS de tener productos creados
+-- =====================================================
+
+USE sistema_inventario;
+
+-- =====================================================
+-- OPCIÓN 1: CREAR INVENTARIO BÁSICO AUTOMÁTICO
+-- Crea inventario para todos los productos existentes
+-- con tallas comunes y colores básicos
+-- =====================================================
+
+-- Inventario automático para productos PISOM (primeros productos)
+INSERT INTO inventario (producto_id, talla_id, color_id, stock_actual, stock_minimo)
+SELECT 
+    p.id as producto_id,
+    t.id as talla_id,
+    c.id as color_id,
+    FLOOR(RAND() * 10) + 1 as stock_actual,  -- Stock aleatorio entre 1-10
+    2 as stock_minimo
+FROM productos p
+CROSS JOIN (
+    SELECT id FROM tallas WHERE nombre IN ('38', '40', '42', '44', 'M', 'L') LIMIT 3
+) t
+CROSS JOIN (
+    SELECT id FROM colores WHERE nombre IN ('AZUL', 'NEGRO', 'BLANCO') LIMIT 2  
+) c
+WHERE p.id BETWEEN 1000 AND 1020  -- Primeros 21 productos
+AND NOT EXISTS (
+    SELECT 1 FROM inventario i 
+    WHERE i.producto_id = p.id 
+    AND i.talla_id = t.id 
+    AND i.color_id = c.id
+);
+
+-- =====================================================
+-- OPCIÓN 2: INVENTARIO ESPECÍFICO PARA PRUEBAS
+-- Crear inventario para productos específicos con datos reales
+-- =====================================================
+
+-- Ejemplo: SHORT JEANS CORTO BLANCO (primer producto)
+INSERT IGNORE INTO inventario (producto_id, talla_id, color_id, stock_actual, stock_minimo)
+VALUES 
+-- Producto ID 1000 en diferentes tallas y colores
+(1000, (SELECT id FROM tallas WHERE nombre = '38'), (SELECT id FROM colores WHERE nombre = 'BLANCO'), 5, 2),
+(1000, (SELECT id FROM tallas WHERE nombre = '40'), (SELECT id FROM colores WHERE nombre = 'BLANCO'), 3, 2),
+(1000, (SELECT id FROM tallas WHERE nombre = '42'), (SELECT id FROM colores WHERE nombre = 'AZUL'), 4, 2),
+
+-- Producto ID 1001 (segundo producto)
+(1001, (SELECT id FROM tallas WHERE nombre = '38'), (SELECT id FROM colores WHERE nombre = 'AZUL'), 6, 2),
+(1001, (SELECT id FROM tallas WHERE nombre = '40'), (SELECT id FROM colores WHERE nombre = 'AZUL'), 2, 2),
+(1001, (SELECT id FROM tallas WHERE nombre = '42'), (SELECT id FROM colores WHERE nombre = 'NEGRO'), 4, 2),
+
+-- Producto ID 1002 (tercer producto)
+(1002, (SELECT id FROM tallas WHERE nombre = '44'), (SELECT id FROM colores WHERE nombre = 'AZUL'), 3, 2),
+(1002, (SELECT id FROM tallas WHERE nombre = '46'), (SELECT id FROM colores WHERE nombre = 'AZUL'), 5, 2),
+(1002, (SELECT id FROM tallas WHERE nombre = 'M'), (SELECT id FROM colores WHERE nombre = 'NEGRO'), 2, 2);
+
+-- =====================================================
+-- OPCIÓN 3: INVENTARIO PARA TODOS LOS PRODUCTOS EXISTENTES
+-- Más conservador, una talla y color por producto
+-- =====================================================
+
+INSERT INTO inventario (producto_id, talla_id, color_id, stock_actual, stock_minimo)
+SELECT 
+    p.id,
+    (SELECT id FROM tallas WHERE nombre = '40' LIMIT 1) as talla_id,
+    (SELECT id FROM colores WHERE nombre = 'AZUL' LIMIT 1) as color_id,
+    5 as stock_actual,
+    2 as stock_minimo
+FROM productos p
+WHERE p.activo = TRUE
+AND NOT EXISTS (
+    SELECT 1 FROM inventario i WHERE i.producto_id = p.id
+);
+
+-- =====================================================
+-- VERIFICAR INVENTARIO CREADO
+-- =====================================================
+
+-- Ver inventario creado con información completa
+SELECT 
+    i.id,
+    i.sku,
+    p.codigo_interno,
+    p.detalle,
+    m.nombre AS marca,
+    t.nombre AS talla,
+    c.nombre AS color,
+    i.stock_actual,
+    i.stock_minimo
+FROM inventario i
+JOIN productos p ON i.producto_id = p.id
+JOIN marcas m ON p.marca_id = m.id
+JOIN tallas t ON i.talla_id = t.id
+JOIN colores c ON i.color_id = c.id
+ORDER BY p.codigo_interno, t.nombre, c.nombre;
+
+-- Ver productos SIN inventario (para detectar faltantes)
+SELECT 
+    p.id,
+    p.codigo_interno,
+    p.detalle,
+    m.nombre AS marca
+FROM productos p
+JOIN marcas m ON p.marca_id = m.id
+WHERE p.activo = TRUE
+AND NOT EXISTS (
+    SELECT 1 FROM inventario i WHERE i.producto_id = p.id
+)
+ORDER BY p.codigo_interno;
+
+-- =====================================================
+-- RESUMEN FINAL
+-- =====================================================
+
+SELECT 
+    'RESUMEN DE INVENTARIO' AS info,
+    COUNT(DISTINCT i.producto_id) AS productos_con_inventario,
+    COUNT(*) AS total_skus_inventario,
+    SUM(i.stock_actual) AS stock_total
+FROM inventario i
+WHERE i.activo = TRUE;

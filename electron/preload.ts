@@ -64,6 +64,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   createInventoryItem: (data: any) => ipcRenderer.invoke("createInventoryItem", data),
   updateInventoryStock: (inventarioId: number, newStock: number) => ipcRenderer.invoke("updateInventoryStock", inventarioId, newStock),
   deleteInventoryItem: (inventarioId: number) => ipcRenderer.invoke("deleteInventoryItem", inventarioId),
+  // APIs para estadísticas del dashboard
+  getDashboardStats: (userId: number, rolNombre: string) => ipcRenderer.invoke("getDashboardStats", userId, rolNombre),
+  getVentasHoy: () => ipcRenderer.invoke("getVentasHoy"),
+  getStockStats: () => ipcRenderer.invoke("getStockStats"),
+  getVentasPromotoraMes: (userId: number) => ipcRenderer.invoke("getVentasPromotoraMes", userId),
   // You can expose other APTs you need here.
   // ...
 });

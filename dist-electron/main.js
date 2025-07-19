@@ -19938,6 +19938,108 @@ async function getUserById(userId) {
   const rows = await executeQuery(sql, [userId]);
   return rows[0] || null;
 }
+async function getVentasHoy() {
+  var _a, _b;
+  const hoy = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  try {
+    const sql = `
+      SELECT 
+        COUNT(*) as total_pedidos,
+        COALESCE(SUM(total), 0) as total_ventas
+      FROM ventas 
+      WHERE DATE(fecha_venta) = ? 
+      AND estado = 'completada'
+    `;
+    const result = await executeQuery(sql, [hoy]);
+    return {
+      totalVentas: Number((_a = result[0]) == null ? void 0 : _a.total_ventas) || 0,
+      totalPedidos: Number((_b = result[0]) == null ? void 0 : _b.total_pedidos) || 0
+    };
+  } catch (error) {
+    console.error("Error al obtener ventas del día:", error);
+    return { totalVentas: 0, totalPedidos: 0 };
+  }
+}
+async function getStockStats() {
+  var _a, _b;
+  try {
+    const sqlTotal = `
+      SELECT COALESCE(SUM(stock_actual), 0) as stock_total
+      FROM inventario 
+      WHERE activo = TRUE
+    `;
+    const sqlBajo = `
+      SELECT COUNT(*) as stock_bajo
+      FROM inventario 
+      WHERE stock_actual <= stock_minimo 
+      AND activo = TRUE
+    `;
+    const [totalResult, bajoResult] = await Promise.all([executeQuery(sqlTotal), executeQuery(sqlBajo)]);
+    return {
+      stockTotal: Number((_a = totalResult[0]) == null ? void 0 : _a.stock_total) || 0,
+      stockBajo: Number((_b = bajoResult[0]) == null ? void 0 : _b.stock_bajo) || 0
+    };
+  } catch (error) {
+    console.error("Error al obtener estadísticas de stock:", error);
+    return { stockTotal: 0, stockBajo: 0 };
+  }
+}
+async function getVentasPromotoraMes(userId) {
+  var _a, _b;
+  try {
+    const now = /* @__PURE__ */ new Date();
+    const primerDia = new Date(now.getFullYear(), now.getMonth(), 1);
+    const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const fechaInicio = primerDia.toISOString().split("T")[0];
+    const fechaFin = ultimoDia.toISOString().split("T")[0];
+    const sql = `
+      SELECT 
+        COUNT(v.id) as total_ventas,
+        COALESCE(SUM(v.total), 0) as total_ganancias
+      FROM ventas v
+      JOIN usuarios u ON v.usuario_id = u.id
+      JOIN roles r ON u.rol_id = r.id
+      WHERE v.usuario_id = ?
+      AND DATE(v.fecha_venta) BETWEEN ? AND ?
+      AND v.estado = 'completada'
+      AND r.nombre = 'promotora'
+    `;
+    const result = await executeQuery(sql, [userId, fechaInicio, fechaFin]);
+    return {
+      totalVentas: Number((_a = result[0]) == null ? void 0 : _a.total_ventas) || 0,
+      totalGanancias: Number((_b = result[0]) == null ? void 0 : _b.total_ganancias) || 0
+    };
+  } catch (error) {
+    console.error("Error al obtener ventas de promotora:", error);
+    return { totalVentas: 0, totalGanancias: 0 };
+  }
+}
+async function getDashboardStats(userId, rolNombre) {
+  try {
+    if (rolNombre === "admin") {
+      const [ventasHoy, stockStats] = await Promise.all([getVentasHoy(), getStockStats()]);
+      return {
+        ventasHoy: ventasHoy.totalVentas,
+        pedidosHoy: ventasHoy.totalPedidos,
+        stockTotal: stockStats.stockTotal,
+        stockBajo: stockStats.stockBajo
+      };
+    } else if (rolNombre === "promotora") {
+      const ventasPromotora = await getVentasPromotoraMes(userId);
+      return {
+        ventasMes: ventasPromotora.totalVentas,
+        gananciasMes: ventasPromotora.totalGanancias
+      };
+    } else {
+      return {
+        mensaje: "Acceso completo como desarrollador"
+      };
+    }
+  } catch (error) {
+    console.error("Error al obtener estadísticas del dashboard:", error);
+    throw error;
+  }
+}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -20236,6 +20338,42 @@ ipcMain.handle("deleteInventoryItem", async (_, inventarioId) => {
     return result;
   } catch (error) {
     console.error("Error al eliminar item de inventario:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getDashboardStats", async (_, userId, rolNombre) => {
+  try {
+    const stats = await getDashboardStats(userId, rolNombre);
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener estadísticas del dashboard:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getVentasHoy", async () => {
+  try {
+    const stats = await getVentasHoy();
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener ventas de hoy:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getStockStats", async () => {
+  try {
+    const stats = await getStockStats();
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener estadísticas de stock:", error);
+    throw error;
+  }
+});
+ipcMain.handle("getVentasPromotoraMes", async (_, userId) => {
+  try {
+    const stats = await getVentasPromotoraMes(userId);
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener ventas de promotora del mes:", error);
     throw error;
   }
 });

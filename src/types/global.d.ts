@@ -60,6 +60,12 @@ interface ElectronAPI {
   createInventoryItem: (data: any) => Promise<any>;
   updateInventoryStock: (inventarioId: number, newStock: number) => Promise<any>;
   deleteInventoryItem: (inventarioId: number) => Promise<any>;
+
+  // APIs para estadísticas del dashboard
+  getDashboardStats: (userId: number, rolNombre: string) => Promise<any>;
+  getVentasHoy: () => Promise<{ totalVentas: number; totalPedidos: number }>;
+  getStockStats: () => Promise<{ stockTotal: number; stockBajo: number }>;
+  getVentasPromotoraMes: (userId: number) => Promise<{ totalVentas: number; totalGanancias: number }>;
 }
 
 // Gestión de inventario

@@ -46,7 +46,12 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   getColores: () => electron.ipcRenderer.invoke("getColores"),
   createInventoryItem: (data) => electron.ipcRenderer.invoke("createInventoryItem", data),
   updateInventoryStock: (inventarioId, newStock) => electron.ipcRenderer.invoke("updateInventoryStock", inventarioId, newStock),
-  deleteInventoryItem: (inventarioId) => electron.ipcRenderer.invoke("deleteInventoryItem", inventarioId)
+  deleteInventoryItem: (inventarioId) => electron.ipcRenderer.invoke("deleteInventoryItem", inventarioId),
+  // APIs para estadísticas del dashboard
+  getDashboardStats: (userId, rolNombre) => electron.ipcRenderer.invoke("getDashboardStats", userId, rolNombre),
+  getVentasHoy: () => electron.ipcRenderer.invoke("getVentasHoy"),
+  getStockStats: () => electron.ipcRenderer.invoke("getStockStats"),
+  getVentasPromotoraMes: (userId) => electron.ipcRenderer.invoke("getVentasPromotoraMes", userId)
   // You can expose other APTs you need here.
   // ...
 });

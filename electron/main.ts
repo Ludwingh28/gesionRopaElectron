@@ -30,6 +30,10 @@ import {
   createInventoryItem,
   updateInventoryStock,
   deleteInventoryItem,
+  getVentasHoy,
+  getStockStats,
+  getVentasPromotoraMes,
+  getDashboardStats,
 } from "./database";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -389,6 +393,50 @@ ipcMain.handle("deleteInventoryItem", async (_, inventarioId: number) => {
     return result;
   } catch (error) {
     console.error("Error al eliminar item de inventario:", error);
+    throw error;
+  }
+});
+
+// Handler para obtener estadísticas del dashboard
+ipcMain.handle("getDashboardStats", async (_, userId: number, rolNombre: string) => {
+  try {
+    const stats = await getDashboardStats(userId, rolNombre);
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener estadísticas del dashboard:", error);
+    throw error;
+  }
+});
+
+// Handler para obtener ventas del día (admin)
+ipcMain.handle("getVentasHoy", async () => {
+  try {
+    const stats = await getVentasHoy();
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener ventas de hoy:", error);
+    throw error;
+  }
+});
+
+// Handler para obtener estadísticas de stock (admin)
+ipcMain.handle("getStockStats", async () => {
+  try {
+    const stats = await getStockStats();
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener estadísticas de stock:", error);
+    throw error;
+  }
+});
+
+// Handler para obtener ventas de promotora del mes
+ipcMain.handle("getVentasPromotoraMes", async (_, userId: number) => {
+  try {
+    const stats = await getVentasPromotoraMes(userId);
+    return stats;
+  } catch (error) {
+    console.error("Error al obtener ventas de promotora del mes:", error);
     throw error;
   }
 });
