@@ -1,8 +1,28 @@
 {
   "name": "gesionropaelectron",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Aplicación de escritorio para la gestión de inventario y ventas de ropa, con generación de códigos de barras y reportes conectada a una base de datos MySQL.",
+  "author": {
+    "name": "+capitos",
+    "email": "null@null.com"
+  },
+  "contributors": [
+    {
+      "name": "Ludwing Julian Herrera Justiniano",
+      "email": "ludwingh2807@gmail.com"
+    },
+    {
+      "name": "Cristian David Ramirez Callejas",
+      "email": "cristian25ramirezrc@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ludwingh28/gesionRopaElectron.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
@@ -39,5 +59,21 @@
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5"
   },
-  "main": "dist-electron/main.js"
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.gestionropa.electron",
+    "productName": "Gestión Ropa",
+    "directories": {
+      "buildResources": "public"
+    },
+    "win": {
+      "icon": "public/LupitaLogo.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
 }
