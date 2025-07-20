@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User, ShoppingCart, Package, TrendingUp, DollarSign, Users, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface CurrentUser {
@@ -33,7 +33,7 @@ const Card = ({
 }: {
   title: string;
   value: string | number;
-  icon: any;
+  icon: React.ComponentType<{ size?: number | string; className?: string }>;
   color?: string;
   textColor?: string;
 }) => (
@@ -56,6 +56,56 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const loadAdminStats = useCallback(async () => {
+    try {
+      // Usar las nuevas funciones del backend
+      const [ventasData, stockData] = await Promise.all([window.electronAPI.getVentasHoy(), window.electronAPI.getStockStats()]);
+
+      setStats({
+        ventasHoy: ventasData.totalVentas,
+        pedidosHoy: ventasData.totalPedidos,
+        stockBajo: stockData.stockBajo,
+        stockTotal: stockData.stockTotal,
+      });
+    } catch (err) {
+      throw new Error("Error al cargar estadísticas de administrador");
+    }
+  }, []);
+
+  const loadPromotoraStats = useCallback(async (userId: number) => {
+    try {
+      // Usar la nueva función del backend para obtener datos de la promotora
+      const ventasData = await window.electronAPI.getVentasPromotoraMes(userId);
+
+      setStats({
+        ventasMes: ventasData.totalVentas || 0,
+        gananciasMes: ventasData.totalGanancias || 0,
+      });
+    } catch (err) {
+      throw new Error("Error al cargar estadísticas de promotora");
+    }
+  }, []);
+
+  const loadStatsForRole = useCallback(async (role: string, userId: number) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      if (role === "admin") {
+        await loadAdminStats();
+      } else if (role === "promotora") {
+        await loadPromotoraStats(userId);
+      } else if (role === "developer") {
+        setStats({ desarrolladorInfo: "¡Bienvenido al sistema, Developer!" });
+      }
+    } catch (err) {
+      console.error("Error al cargar estadísticas:", err);
+      setError("Error al cargar las estadísticas");
+    }
+
+    setLoading(false);
+  }, [loadAdminStats, loadPromotoraStats]);
+
   // Cargar usuario del localStorage
   useEffect(() => {
     const userData = localStorage.getItem("currentUser");
@@ -75,57 +125,7 @@ const Home = () => {
     if (currentUser) {
       loadStatsForRole(currentUser.rol_nombre, currentUser.id);
     }
-  }, [currentUser]);
-
-  const loadStatsForRole = async (role: string, userId: number) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      if (role === "admin") {
-        await loadAdminStats();
-      } else if (role === "promotora") {
-        await loadPromotoraStats(userId);
-      } else if (role === "developer") {
-        setStats({ desarrolladorInfo: "¡Bienvenido al sistema, Developer!" });
-      }
-    } catch (err) {
-      console.error("Error al cargar estadísticas:", err);
-      setError("Error al cargar las estadísticas");
-    }
-
-    setLoading(false);
-  };
-
-  const loadAdminStats = async () => {
-    try {
-      // Usar las nuevas funciones del backend
-      const [ventasData, stockData] = await Promise.all([(window.electronAPI as any).getVentasHoy(), (window.electronAPI as any).getStockStats()]);
-
-      setStats({
-        ventasHoy: ventasData.totalVentas,
-        pedidosHoy: ventasData.totalPedidos,
-        stockBajo: stockData.stockBajo,
-        stockTotal: stockData.stockTotal,
-      });
-    } catch (err) {
-      throw new Error("Error al cargar estadísticas de administrador");
-    }
-  };
-
-  const loadPromotoraStats = async (userId: number) => {
-    try {
-      // Usar la nueva función del backend para obtener datos de la promotora
-      const ventasData = await (window.electronAPI as any).getVentasPromotoraMes(userId);
-
-      setStats({
-        ventasMes: ventasData.totalVentas || 0,
-        gananciasMes: ventasData.totalGanancias || 0,
-      });
-    } catch (err) {
-      throw new Error("Error al cargar estadísticas de promotora");
-    }
-  };
+  }, [currentUser, loadStatsForRole]);
 
   // Función para obtener el saludo según la hora
   const getSaludo = () => {

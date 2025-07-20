@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BarChart2, TrendingUp, Package, AlertTriangle, Calendar, RefreshCw, FileText, DollarSign, Printer, Award, ShoppingBag } from "lucide-react";
-import { Table, Header, HeaderRow, HeaderCell, Body, Row, Cell } from "@table-library/react-table-library/table";
-import { useTheme } from "@table-library/react-table-library/theme";
-import { getTheme } from "@table-library/react-table-library/baseline";
+import DataTable from "../components/DataTable";
+
 
 interface CurrentUser {
   id: number;
@@ -12,6 +11,8 @@ interface CurrentUser {
   email: string;
 }
 
+
+
 const Reports = () => {
   // Estados principales
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -19,14 +20,22 @@ const Reports = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("resumen");
 
-  // Estados de datos
+  // Estados de datos con tipos específicos
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [resumenEjecutivo, setResumenEjecutivo] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [productosMasVendidos, setProductosMasVendidos] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rankingPromotoras, setRankingPromotoras] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [comparativoMensual, setComparativoMensual] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analisisCategorias, setAnalisisCategorias] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analisisMarcas, setAnalisisMarcas] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [inventarioCritico, setInventarioCritico] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [ventasPorPago, setVentasPorPago] = useState<any[]>([]);
 
   // Estados de filtros
@@ -34,35 +43,37 @@ const Reports = () => {
   const [fechaFin, setFechaFin] = useState("");
   const [limite, setLimite] = useState(20);
 
-  // Tema para tablas
-  const theme = useTheme([
-    getTheme(),
-    {
-      Table: `
-        --data-table-library_grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      `,
-      HeaderRow: `
-        background-color: #f8fafc;
-        .dark & {
-          background-color: #1e293b;
-        }
-      `,
-      Row: `
-        &:nth-of-type(odd) {
-          background-color: #f1f5f9;
-        }
-        .dark &:nth-of-type(odd) {
-          background-color: #334155;
-        }
-        &:hover {
-          background-color: #e2e8f0;
-        }
-        .dark &:hover {
-          background-color: #475569;
-        }
-      `,
-    },
-  ]);
+  const loadAllReports = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const [resumen, productos, promotoras, mensual, categorias, marcas, inventario, metodosPago] = await Promise.all([
+        window.electronAPI.getResumenEjecutivo(fechaInicio, fechaFin),
+        window.electronAPI.getProductosMasVendidos(fechaInicio, fechaFin, limite),
+        window.electronAPI.getRankingPromotoras(fechaInicio, fechaFin),
+        window.electronAPI.getComparativoVentasMensuales(12),
+        window.electronAPI.getAnalisisPorCategorias(fechaInicio, fechaFin),
+        window.electronAPI.getAnalisisPorMarcas(fechaInicio, fechaFin),
+        window.electronAPI.getReporteInventarioCritico(),
+        window.electronAPI.getVentasPorMetodoPago(fechaInicio, fechaFin),
+      ]);
+
+      setResumenEjecutivo(resumen);
+      setProductosMasVendidos(productos);
+      setRankingPromotoras(promotoras);
+      setComparativoMensual(mensual);
+      setAnalisisCategorias(categorias);
+      setAnalisisMarcas(marcas);
+      setInventarioCritico(inventario);
+      setVentasPorPago(metodosPago);
+    } catch (err) {
+      console.error("Error al cargar reportes:", err);
+      setError("Error al cargar los reportes");
+    }
+
+    setLoading(false);
+  }, [fechaInicio, fechaFin, limite]);
 
   // Cargar usuario actual
   useEffect(() => {
@@ -89,39 +100,7 @@ const Reports = () => {
     if (fechaInicio && fechaFin) {
       loadAllReports();
     }
-  }, [fechaInicio, fechaFin, limite]);
-
-  const loadAllReports = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const [resumen, productos, promotoras, mensual, categorias, marcas, inventario, metodosPago] = await Promise.all([
-        (window.electronAPI as any).getResumenEjecutivo(fechaInicio, fechaFin),
-        (window.electronAPI as any).getProductosMasVendidos(fechaInicio, fechaFin, limite),
-        (window.electronAPI as any).getRankingPromotoras(fechaInicio, fechaFin),
-        (window.electronAPI as any).getComparativoVentasMensuales(12),
-        (window.electronAPI as any).getAnalisisPorCategorias(fechaInicio, fechaFin),
-        (window.electronAPI as any).getAnalisisPorMarcas(fechaInicio, fechaFin),
-        (window.electronAPI as any).getReporteInventarioCritico(),
-        (window.electronAPI as any).getVentasPorMetodoPago(fechaInicio, fechaFin),
-      ]);
-
-      setResumenEjecutivo(resumen);
-      setProductosMasVendidos(productos);
-      setRankingPromotoras(promotoras);
-      setComparativoMensual(mensual);
-      setAnalisisCategorias(categorias);
-      setAnalisisMarcas(marcas);
-      setInventarioCritico(inventario);
-      setVentasPorPago(metodosPago);
-    } catch (err) {
-      console.error("Error al cargar reportes:", err);
-      setError("Error al cargar los reportes");
-    }
-
-    setLoading(false);
-  };
+  }, [loadAllReports]);
 
   const exportToPDF = () => {
     // Implementar exportación a PDF
@@ -135,7 +114,13 @@ const Reports = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color = "blue", change }: any) => (
+  const StatCard = ({ title, value, icon: Icon, color = "blue", change }: {
+    title: string;
+    value: string | number;
+    icon: React.ComponentType<{ size?: number | string; className?: string }>;
+    color?: string;
+    change?: number;
+  }) => (
     <div className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700`}>
       <div className="flex items-center justify-between">
         <div>
@@ -286,6 +271,7 @@ const Reports = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold mb-4">Top 3 Productos</h3>
                     <div className="space-y-3">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {resumenEjecutivo.topProductos.map((producto: any, index: number) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center">
@@ -307,6 +293,7 @@ const Reports = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold mb-4">Top 3 Promotoras</h3>
                     <div className="space-y-3">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {resumenEjecutivo.topPromotoras.map((promotora: any, index: number) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center">
@@ -333,38 +320,68 @@ const Reports = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Productos Más Vendidos</h2>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                  <Table data={{ nodes: productosMasVendidos }} theme={theme}>
-                    {(tableList: any) => (
-                      <>
-                        <Header>
-                          <HeaderRow>
-                            <HeaderCell>Código</HeaderCell>
-                            <HeaderCell>Producto</HeaderCell>
-                            <HeaderCell>Marca</HeaderCell>
-                            <HeaderCell>Categoría</HeaderCell>
-                            <HeaderCell>Cantidad Vendida</HeaderCell>
-                            <HeaderCell>Total Facturado</HeaderCell>
-                            <HeaderCell>Precio Promedio</HeaderCell>
-                            <HeaderCell>Núm. Ventas</HeaderCell>
-                          </HeaderRow>
-                        </Header>
-                        <Body>
-                          {tableList.map((item: any, index: number) => (
-                            <Row key={index} item={item}>
-                              <Cell>{item.codigo_interno}</Cell>
-                              <Cell className="font-medium">{item.detalle}</Cell>
-                              <Cell>{item.marca}</Cell>
-                              <Cell>{item.categoria}</Cell>
-                              <Cell className="text-center font-semibold text-blue-600">{item.total_vendido}</Cell>
-                              <Cell className="text-right font-semibold">Bs. {Number(item.total_facturado).toLocaleString()}</Cell>
-                              <Cell className="text-right">Bs. {Number(item.precio_promedio).toFixed(2)}</Cell>
-                              <Cell className="text-center">{item.numero_ventas}</Cell>
-                            </Row>
-                          ))}
-                        </Body>
-                      </>
-                    )}
-                  </Table>
+                  <DataTable
+                    data={productosMasVendidos}
+                    rowKey={(row) => row.codigo_interno || row.id}
+                    columns={[
+                      {
+                        key: "codigo_interno",
+                        label: "Código",
+                        render: (row) => (
+                          <span className="font-mono text-sm">{row.codigo_interno}</span>
+                        ),
+                      },
+                      {
+                        key: "detalle",
+                        label: "Producto",
+                        render: (row) => (
+                          <span className="font-medium">{row.detalle}</span>
+                        ),
+                      },
+                      {
+                        key: "marca",
+                        label: "Marca",
+                        render: (row) => (
+                          <span>{row.marca}</span>
+                        ),
+                      },
+                      {
+                        key: "categoria",
+                        label: "Categoría",
+                        render: (row) => (
+                          <span>{row.categoria}</span>
+                        ),
+                      },
+                      {
+                        key: "total_vendido",
+                        label: "Cantidad Vendida",
+                        render: (row) => (
+                          <span className="text-center font-semibold text-blue-600">{row.total_vendido}</span>
+                        ),
+                      },
+                      {
+                        key: "total_facturado",
+                        label: "Total Facturado",
+                        render: (row) => (
+                          <span className="text-right font-semibold">Bs. {Number(row.total_facturado).toLocaleString()}</span>
+                        ),
+                      },
+                      {
+                        key: "precio_promedio",
+                        label: "Precio Promedio",
+                        render: (row) => (
+                          <span className="text-right">Bs. {Number(row.precio_promedio).toFixed(2)}</span>
+                        ),
+                      },
+                      {
+                        key: "numero_ventas",
+                        label: "Núm. Ventas",
+                        render: (row) => (
+                          <span className="text-center">{row.numero_ventas}</span>
+                        ),
+                      },
+                    ]}
+                  />
                 </div>
               </div>
             )}
@@ -374,44 +391,67 @@ const Reports = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Ranking de Promotoras</h2>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                  <Table data={{ nodes: rankingPromotoras }} theme={theme}>
-                    {(tableList: any) => (
-                      <>
-                        <Header>
-                          <HeaderRow>
-                            <HeaderCell>Ranking</HeaderCell>
-                            <HeaderCell>Promotora</HeaderCell>
-                            <HeaderCell>Total Ventas</HeaderCell>
-                            <HeaderCell>Total Facturado</HeaderCell>
-                            <HeaderCell>Artículos Vendidos</HeaderCell>
-                            <HeaderCell>Promedio Venta</HeaderCell>
-                            <HeaderCell>Comisión Ganada</HeaderCell>
-                          </HeaderRow>
-                        </Header>
-                        <Body>
-                          {tableList.map((item: any, index: number) => (
-                            <Row key={index} item={item}>
-                              <Cell>
-                                <span
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
-                                    index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : index === 2 ? "bg-orange-400" : "bg-blue-500"
-                                  }`}
-                                >
-                                  {index + 1}
-                                </span>
-                              </Cell>
-                              <Cell className="font-medium">{item.promotora}</Cell>
-                              <Cell className="text-center">{item.total_ventas}</Cell>
-                              <Cell className="text-right font-semibold">Bs. {Number(item.total_facturado).toLocaleString()}</Cell>
-                              <Cell className="text-center">{item.articulos_vendidos}</Cell>
-                              <Cell className="text-right">Bs. {Number(item.promedio_venta).toFixed(2)}</Cell>
-                              <Cell className="text-right font-semibold text-green-600">Bs. {Number(item.comision_ganada).toLocaleString()}</Cell>
-                            </Row>
-                          ))}
-                        </Body>
-                      </>
-                    )}
-                  </Table>
+                  <DataTable
+                    data={rankingPromotoras}
+                    rowKey={(row) => row.promotora || row.id}
+                    columns={[
+                      {
+                        key: "ranking",
+                        label: "Ranking",
+                        render: (row) => (
+                          <span
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
+                              rankingPromotoras.indexOf(row) === 0 ? "bg-yellow-500" : rankingPromotoras.indexOf(row) === 1 ? "bg-gray-400" : rankingPromotoras.indexOf(row) === 2 ? "bg-orange-400" : "bg-blue-500"
+                            }`}
+                          >
+                            {rankingPromotoras.indexOf(row) + 1}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "promotora",
+                        label: "Promotora",
+                        render: (row) => (
+                          <span className="font-medium">{row.promotora}</span>
+                        ),
+                      },
+                      {
+                        key: "total_ventas",
+                        label: "Total Ventas",
+                        render: (row) => (
+                          <span className="text-center">{row.total_ventas}</span>
+                        ),
+                      },
+                      {
+                        key: "total_facturado",
+                        label: "Total Facturado",
+                        render: (row) => (
+                          <span className="text-right font-semibold">Bs. {Number(row.total_facturado).toLocaleString()}</span>
+                        ),
+                      },
+                      {
+                        key: "articulos_vendidos",
+                        label: "Artículos Vendidos",
+                        render: (row) => (
+                          <span className="text-center">{row.articulos_vendidos}</span>
+                        ),
+                      },
+                      {
+                        key: "promedio_venta",
+                        label: "Promedio Venta",
+                        render: (row) => (
+                          <span className="text-right">Bs. {Number(row.promedio_venta).toFixed(2)}</span>
+                        ),
+                      },
+                      {
+                        key: "comision_ganada",
+                        label: "Comisión Ganada",
+                        render: (row) => (
+                          <span className="text-right font-semibold text-green-600">Bs. {Number(row.comision_ganada).toLocaleString()}</span>
+                        ),
+                      },
+                    ]}
+                  />
                 </div>
               </div>
             )}
@@ -425,36 +465,56 @@ const Reports = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                   <h3 className="text-lg font-semibold mb-4">Evolución Mensual (Últimos 12 meses)</h3>
                   <div className="overflow-x-auto">
-                    <Table data={{ nodes: comparativoMensual }} theme={theme}>
-                      {(tableList: any) => (
-                        <>
-                          <Header>
-                            <HeaderRow>
-                              <HeaderCell>Mes</HeaderCell>
-                              <HeaderCell>Ventas</HeaderCell>
-                              <HeaderCell>Facturado</HeaderCell>
-                              <HeaderCell>Artículos</HeaderCell>
-                              <HeaderCell>Promedio</HeaderCell>
-                              <HeaderCell>Vendedores</HeaderCell>
-                            </HeaderRow>
-                          </Header>
-                          <Body>
-                            {tableList.map((item: any, index: number) => (
-                              <Row key={index} item={item}>
-                                <Cell className="font-medium">
-                                  {item.nombre_mes} {item.año}
-                                </Cell>
-                                <Cell className="text-center">{item.total_ventas}</Cell>
-                                <Cell className="text-right">Bs. {Number(item.total_facturado).toLocaleString()}</Cell>
-                                <Cell className="text-center">{item.articulos_vendidos}</Cell>
-                                <Cell className="text-right">Bs. {Number(item.promedio_venta).toFixed(2)}</Cell>
-                                <Cell className="text-center">{item.vendedores_activos}</Cell>
-                              </Row>
-                            ))}
-                          </Body>
-                        </>
-                      )}
-                    </Table>
+                                         <DataTable
+                       data={comparativoMensual}
+                       rowKey={(row) => `${row.año}-${row.mes}`}
+                       columns={[
+                         {
+                           key: "mes",
+                           label: "Mes",
+                           render: (row) => (
+                             <span className="font-medium">
+                               {row.nombre_mes} {row.año}
+                             </span>
+                           ),
+                         },
+                         {
+                           key: "total_ventas",
+                           label: "Ventas",
+                           render: (row) => (
+                             <span className="text-center">{row.total_ventas}</span>
+                           ),
+                         },
+                         {
+                           key: "total_facturado",
+                           label: "Facturado",
+                           render: (row) => (
+                             <span className="text-right">Bs. {Number(row.total_facturado).toLocaleString()}</span>
+                           ),
+                         },
+                         {
+                           key: "articulos_vendidos",
+                           label: "Artículos",
+                           render: (row) => (
+                             <span className="text-center">{row.articulos_vendidos}</span>
+                           ),
+                         },
+                         {
+                           key: "promedio_venta",
+                           label: "Promedio",
+                           render: (row) => (
+                             <span className="text-right">Bs. {Number(row.promedio_venta).toFixed(2)}</span>
+                           ),
+                         },
+                         {
+                           key: "vendedores_activos",
+                           label: "Vendedores",
+                           render: (row) => (
+                             <span className="text-center">{row.vendedores_activos}</span>
+                           ),
+                         },
+                       ]}
+                     />
                   </div>
                 </div>
 
@@ -463,6 +523,7 @@ const Reports = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold mb-4">Top Categorías</h3>
                     <div className="space-y-3">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {analisisCategorias.slice(0, 5).map((categoria: any, index: number) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded">
                           <span className="font-medium">{categoria.categoria}</span>
@@ -478,6 +539,7 @@ const Reports = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold mb-4">Top Marcas</h3>
                     <div className="space-y-3">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {analisisMarcas.slice(0, 5).map((marca: any, index: number) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded">
                           <span className="font-medium">{marca.marca}</span>
@@ -495,6 +557,7 @@ const Reports = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                   <h3 className="text-lg font-semibold mb-4">Ventas por Método de Pago</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {ventasPorPago.map((metodo: any, index: number) => (
                       <div key={index} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <h4 className="font-semibold capitalize">{metodo.metodo_pago}</h4>
@@ -517,40 +580,70 @@ const Reports = () => {
                   </span>
                 </div>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                  <Table data={{ nodes: inventarioCritico }} theme={theme}>
-                    {(tableList: any) => (
-                      <>
-                        <Header>
-                          <HeaderRow>
-                            <HeaderCell>SKU</HeaderCell>
-                            <HeaderCell>Producto</HeaderCell>
-                            <HeaderCell>Marca</HeaderCell>
-                            <HeaderCell>Talla/Color</HeaderCell>
-                            <HeaderCell>Stock Actual</HeaderCell>
-                            <HeaderCell>Stock Mínimo</HeaderCell>
-                            <HeaderCell>Déficit</HeaderCell>
-                            <HeaderCell>Valor Reposición</HeaderCell>
-                          </HeaderRow>
-                        </Header>
-                        <Body>
-                          {tableList.map((item: any, index: number) => (
-                            <Row key={index} item={item}>
-                              <Cell className="font-mono text-sm">{item.sku}</Cell>
-                              <Cell className="font-medium">{item.detalle}</Cell>
-                              <Cell>{item.marca}</Cell>
-                              <Cell>
-                                {item.talla} - {item.color}
-                              </Cell>
-                              <Cell className={`text-center font-semibold ${item.stock_actual === 0 ? "text-red-600" : "text-orange-600"}`}>{item.stock_actual}</Cell>
-                              <Cell className="text-center">{item.stock_minimo}</Cell>
-                              <Cell className="text-center font-semibold text-red-600">{item.deficit}</Cell>
-                              <Cell className="text-right font-semibold">Bs. {Number(item.valor_reposicion_sugerida || 0).toLocaleString()}</Cell>
-                            </Row>
-                          ))}
-                        </Body>
-                      </>
-                    )}
-                  </Table>
+                                     <DataTable
+                     data={inventarioCritico}
+                     rowKey={(row) => row.sku || row.id}
+                     columns={[
+                       {
+                         key: "sku",
+                         label: "SKU",
+                         render: (row) => (
+                           <span className="font-mono text-sm">{row.sku}</span>
+                         ),
+                       },
+                       {
+                         key: "detalle",
+                         label: "Producto",
+                         render: (row) => (
+                           <span className="font-medium">{row.detalle}</span>
+                         ),
+                       },
+                       {
+                         key: "marca",
+                         label: "Marca",
+                         render: (row) => (
+                           <span>{row.marca}</span>
+                         ),
+                       },
+                       {
+                         key: "talla",
+                         label: "Talla/Color",
+                         render: (row) => (
+                           <span>
+                             {row.talla} - {row.color}
+                           </span>
+                         ),
+                       },
+                       {
+                         key: "stock_actual",
+                         label: "Stock Actual",
+                         render: (row) => (
+                           <span className={`text-center font-semibold ${row.stock_actual === 0 ? "text-red-600" : "text-orange-600"}`}>{row.stock_actual}</span>
+                         ),
+                       },
+                       {
+                         key: "stock_minimo",
+                         label: "Stock Mínimo",
+                         render: (row) => (
+                           <span className="text-center">{row.stock_minimo}</span>
+                         ),
+                       },
+                       {
+                         key: "deficit",
+                         label: "Déficit",
+                         render: (row) => (
+                           <span className="text-center font-semibold text-red-600">{row.deficit}</span>
+                         ),
+                       },
+                       {
+                         key: "valor_reposicion_sugerida",
+                         label: "Valor Reposición",
+                         render: (row) => (
+                           <span className="text-right font-semibold">Bs. {Number(row.valor_reposicion_sugerida || 0).toLocaleString()}</span>
+                         ),
+                       },
+                     ]}
+                   />
                 </div>
               </div>
             )}
