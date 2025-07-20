@@ -16,6 +16,80 @@ interface AuthResponse {
   user?: AuthUser;
 }
 
+// Interfaces para datos de usuario
+interface UserCreateData {
+  nombre: string;
+  usuario: string;
+  email: string;
+  telefono: string;
+  password: string;
+  rol_id: number;
+}
+
+interface UserUpdateData {
+  nombre?: string;
+  usuario?: string;
+  email?: string;
+  telefono?: string;
+  password?: string;
+  rol_id?: number;
+}
+
+// Interfaces para productos
+interface ProductCreateData {
+  detalle: string;
+  marca_id: number;
+  categoria_id: number;
+  costo_compra: number;
+  precio_venta_base: number;
+  activo: boolean;
+}
+
+interface Product {
+  id: number;
+  detalle: string;
+  marca_id: number;
+  categoria_id: number;
+  costo_compra: number;
+  precio_venta_base: number;
+  activo: boolean;
+}
+
+interface Brand {
+  id: number;
+  nombre: string;
+}
+
+interface Category {
+  id: number;
+  nombre: string;
+}
+
+// Interfaces para ventas
+interface SaleCreateData {
+  usuario_id: number;
+  cliente_nombre: string;
+  cliente_documento: string;
+  metodo_pago: string;
+  observaciones?: string;
+}
+
+interface SaleItem {
+  venta_id: number;
+  inventario_id: number;
+  cantidad: number;
+}
+
+// Interfaces para inventario
+interface InventoryCreateData {
+  producto_id: number;
+  talla_id: number;
+  color_id: number;
+  stock_actual: number;
+  stock_minimo: number;
+  ubicacion?: string;
+}
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("electronAPI", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
@@ -37,31 +111,31 @@ contextBridge.exposeInMainWorld("electronAPI", {
   authenticateUser: (username: string, password: string): Promise<AuthResponse> => ipcRenderer.invoke("authenticateUser", username, password),
   getUsers: (search: string) => ipcRenderer.invoke("getUsers", search),
   updateUserStatus: (userId: number, activo: boolean) => ipcRenderer.invoke("updateUserStatus", userId, activo),
-  createUser: (data: any) => ipcRenderer.invoke("createUser", data),
-  updateUser: (data: any) => ipcRenderer.invoke("updateUser", data),
+  createUser: (data: UserCreateData) => ipcRenderer.invoke("createUser", data),
+  updateUser: (data: UserUpdateData & { id: number }) => ipcRenderer.invoke("updateUser", data),
   getRoles: () => ipcRenderer.invoke("getRoles"),
   // API para gestión de productos:
   getProducts: (search: string = "") => ipcRenderer.invoke("getProducts", search),
-  createProduct: (data: any) => ipcRenderer.invoke("createProduct", data),
-  updateProduct: (data: any) => ipcRenderer.invoke("updateProduct", data),
+  createProduct: (data: ProductCreateData) => ipcRenderer.invoke("createProduct", data),
+  updateProduct: (data: Product) => ipcRenderer.invoke("updateProduct", data),
   deleteProduct: (id: number) => ipcRenderer.invoke("deleteProduct", id),
   updateProductPrice: (productId: number, newPrice: number) => ipcRenderer.invoke("updateProductPrice", productId, newPrice),
   getBrands: () => ipcRenderer.invoke("getBrands"),
   getCategories: () => ipcRenderer.invoke("getCategories"),
-  createBrand: (data: any) => ipcRenderer.invoke("createBrand", data),
-  createCategory: (data: any) => ipcRenderer.invoke("createCategory", data),
+  createBrand: (data: Brand) => ipcRenderer.invoke("createBrand", data),
+  createCategory: (data: Category) => ipcRenderer.invoke("createCategory", data),
   // API para gestión de ventas:
   getProductByCode: (codigo: string) => ipcRenderer.invoke("getProductByCode", codigo),
   getInventoryByProduct: (productId: number) => ipcRenderer.invoke("getInventoryByProduct", productId),
-  createSale: (data: any) => ipcRenderer.invoke("createSale", data),
-  addItemToSale: (data: any) => ipcRenderer.invoke("addItemToSale", data),
+  createSale: (data: SaleCreateData) => ipcRenderer.invoke("createSale", data),
+  addItemToSale: (data: SaleItem) => ipcRenderer.invoke("addItemToSale", data),
   getSaleDetails: (ventaId: number) => ipcRenderer.invoke("getSaleDetails", ventaId),
   getUserById: (userId: number) => ipcRenderer.invoke("getUserById", userId),
   // API para gestión de inventario:
   getInventoryList: () => ipcRenderer.invoke("getInventoryList"),
   getTallas: () => ipcRenderer.invoke("getTallas"),
   getColores: () => ipcRenderer.invoke("getColores"),
-  createInventoryItem: (data: any) => ipcRenderer.invoke("createInventoryItem", data),
+  createInventoryItem: (data: InventoryCreateData) => ipcRenderer.invoke("createInventoryItem", data),
   updateInventoryStock: (inventarioId: number, newStock: number) => ipcRenderer.invoke("updateInventoryStock", inventarioId, newStock),
   deleteInventoryItem: (inventarioId: number) => ipcRenderer.invoke("deleteInventoryItem", inventarioId),
   // APIs para estadísticas del dashboard

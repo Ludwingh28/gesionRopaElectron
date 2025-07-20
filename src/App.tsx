@@ -19,17 +19,23 @@ interface CurrentUser {
   email: string;
 }
 
+interface AppProps {
+  onLogout: () => void;
+}
+
 // Componente Sidebar que puede usar useLocation
 const Sidebar = ({
   darkMode,
   toggleTheme,
   collapsed,
   setCollapsed,
+  onLogout,
 }: {
   darkMode: boolean;
   toggleTheme: () => void;
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  onLogout: () => void;
 }) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -164,9 +170,7 @@ const Sidebar = ({
           ))}
           {/* Botón de cerrar sesión */}
           <button
-            onClick={() => {
-              window.location.href = "/login";
-            }}
+            onClick={onLogout}
             className={`w-full flex items-center ${
               collapsed ? "justify-center" : ""
             } space-x-2 p-2 rounded cursor-pointer transition-colors mt-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 font-medium relative group`}
@@ -187,7 +191,7 @@ const Sidebar = ({
 };
 
 // Componente principal que maneja el estado del tema
-const AppContent = () => {
+const AppContent = ({ onLogout }: AppProps) => {
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -206,7 +210,7 @@ const AppContent = () => {
 
   return (
     <div className="bg-[#fdfbf7] dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex transition-colors duration-300">
-      <Sidebar darkMode={darkMode} toggleTheme={toggleTheme} collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Sidebar darkMode={darkMode} toggleTheme={toggleTheme} collapsed={collapsed} setCollapsed={setCollapsed} onLogout={onLogout} />
 
       {/* Main Content */}
       <main className={`flex-1 p-6 space-y-6 transition-all duration-300 ${collapsed ? "md:ml-20" : "md:ml-64"}`}>
@@ -225,10 +229,10 @@ const AppContent = () => {
   );
 };
 
-function App() {
+function App({ onLogout }: AppProps) {
   return (
     <Router>
-      <AppContent />
+      <AppContent onLogout={onLogout} />
     </Router>
   );
 }

@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Moon, Sun, User, Lock, Eye, EyeOff } from "lucide-react";
-import App from "./App";
 
-const Login = () => {
+interface LoginProps {
+  onLoginSuccess: () => void;
+}
+
+const Login = ({ onLoginSuccess }: LoginProps) => {
   // Estado para el usuario y contraseña
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -12,10 +15,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   // Estado para el mensaje de error
   const [errorMessage, setErrorMessage] = useState("");
-  // Estado para el usuario autenticado (podría ser un objeto de usuario en lugar de null)
-  const [authenticatedUser, setAuthenticatedUser] = useState<string | null>(null); // Cambiado a string para el nombre de usuario
-  // Estado para el mensaje de éxito
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Estado para el modo oscuro
   const [darkMode, setDarkMode] = useState(true);
@@ -38,7 +37,6 @@ const Login = () => {
     event.preventDefault(); // Previene el recargado de la página por defecto del formulario
 
     setErrorMessage(""); // Limpiar cualquier mensaje de error previo
-    setSuccessMessage(""); // Limpiar cualquier mensaje de éxito previo
     setLoading(true);
 
     if (!username || !password) {
@@ -52,8 +50,6 @@ const Login = () => {
       const response = await window.electronAPI.authenticateUser(username, password);
 
       if (response.success && response.user) {
-        setSuccessMessage("¡Inicio de sesión exitoso!");
-
         // Guardar información del usuario en localStorage
         const userData = {
           id: response.user.id || 1, // Asegurar que tenga un ID
@@ -64,29 +60,24 @@ const Login = () => {
         };
         localStorage.setItem("currentUser", JSON.stringify(userData));
 
-        setAuthenticatedUser(username); // Guarda el nombre de usuario autenticado
         setLoading(false);
+        
+        // Llamar inmediatamente a la función de callback para redirigir
+        onLoginSuccess();
       } else if (response.reason === "inactive") {
         setErrorMessage("Usuario inactivo. Por favor, contacte al administrador.");
-        setAuthenticatedUser(null);
         setLoading(false);
       } else {
         setErrorMessage("Usuario o contraseña incorrectos.");
-        setAuthenticatedUser(null);
         setLoading(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error al autenticar usuario:", error);
-      setErrorMessage(`Error de conexión: ${error.message}`);
-      setAuthenticatedUser(null);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      setErrorMessage(`Error de conexión: ${errorMessage}`);
       setLoading(false);
     }
   };
-
-  // Si el usuario ya está autenticado, podrías mostrar un mensaje o redirigir
-  if (authenticatedUser) {
-    return <App />;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#fdfbf7] dark:bg-gray-900 transition-colors duration-300">
@@ -103,9 +94,8 @@ const Login = () => {
       >
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-white font-cursive">LUPITA</h1>
 
-        {/* Mensajes de error/éxito */}
+        {/* Mensajes de error */}
         {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>}
-        {successMessage && <p className="text-green-500 text-center mb-4">{successMessage}</p>}
 
         {/* Conectamos el formulario con handleLogin */}
         <form className="space-y-4" onSubmit={handleLogin}>
