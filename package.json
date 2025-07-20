@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@table-library/react-table-library": "4.1.15",
     "@tailwindcss/vite": "4.1.10",
     "crypto": "1.0.1",
     "dotenv": "16.5.0",
