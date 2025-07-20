@@ -169,6 +169,10 @@ const Reports = () => {
 
     // Esperar a que se cargue el contenido y luego abrir el diálogo de impresión
     printWindow.onload = () => {
+      // Cerrar la ventana después de imprimir
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
       setTimeout(() => {
         printWindow.print();
       }, 500);
