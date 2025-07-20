@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
@@ -69,15 +69,62 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null;
 
+// Función para crear el menú personalizado de producción
+function createProductionMenu() {
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: "Opciones",
+      submenu: [
+        {
+          label: "Recargar",
+          accelerator: "CmdOrCtrl+R",
+          click: () => {
+            if (win) {
+              win.webContents.reload();
+            }
+          },
+        },
+        {
+          label: "Forzar Recarga",
+          accelerator: "CmdOrCtrl+Shift+R",
+          click: () => {
+            if (win) {
+              win.webContents.reloadIgnoringCache();
+            }
+          },
+        },
+        {
+          type: "separator",
+        },
+        {
+          label: "Herramientas de Desarrollo",
+          accelerator: process.platform === "darwin" ? "Alt+Cmd+I" : "Ctrl+Shift+I",
+          click: () => {
+            if (win) {
+              win.webContents.toggleDevTools();
+            }
+          },
+        },
+      ],
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path.join(process.env.VITE_PUBLIC, "LupitaLogo.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
 
   win.maximize();
+
+  // Configurar el menú personalizado para producción
+  createProductionMenu();
 
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {

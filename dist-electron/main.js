@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import require$$0$4 from "events";
@@ -20416,14 +20416,56 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
+function createProductionMenu() {
+  const template = [
+    {
+      label: "Opciones",
+      submenu: [
+        {
+          label: "Recargar",
+          accelerator: "CmdOrCtrl+R",
+          click: () => {
+            if (win) {
+              win.webContents.reload();
+            }
+          }
+        },
+        {
+          label: "Forzar Recarga",
+          accelerator: "CmdOrCtrl+Shift+R",
+          click: () => {
+            if (win) {
+              win.webContents.reloadIgnoringCache();
+            }
+          }
+        },
+        {
+          type: "separator"
+        },
+        {
+          label: "Herramientas de Desarrollo",
+          accelerator: process.platform === "darwin" ? "Alt+Cmd+I" : "Ctrl+Shift+I",
+          click: () => {
+            if (win) {
+              win.webContents.toggleDevTools();
+            }
+          }
+        }
+      ]
+    }
+  ];
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "public/LupitaLogo.ico"),
+    icon: path.join(process.env.VITE_PUBLIC, "LupitaLogo.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
     }
   });
   win.maximize();
+  createProductionMenu();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
