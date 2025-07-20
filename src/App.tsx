@@ -11,9 +11,13 @@ import Reports from "./sections/Reports";
 import UserManagement from "./sections/UserManagement";
 
 // Componente Sidebar que puede usar useLocation
-const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: () => void }) => {
+const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: { 
+  darkMode: boolean; 
+  toggleTheme: () => void; 
+  collapsed: boolean; 
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>; 
+}) => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -53,11 +57,11 @@ const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: ()
         onClick={() => setMobileOpen(false)}
       />
       <aside
-        className={`fixed md:static top-0 left-0 z-50 h-full md:h-auto bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 flex flex-col transition-all duration-300
+        className={`fixed top-0 left-0 z-50 h-full bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 flex flex-col transition-all duration-300
           ${collapsed ? 'w-20' : 'w-64'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
-          shadow-lg md:shadow-none
+          shadow-lg
         `}
         style={{ minHeight: '100vh' }}
       >
@@ -70,7 +74,7 @@ const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: ()
             {/* Botón para colapsar/expandir sidebar en desktop */}
             <button
               className="hidden md:inline-flex items-center justify-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
-              onClick={() => setCollapsed((v) => !v)}
+              onClick={() => setCollapsed(!collapsed)}
               aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
             >
               {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
@@ -132,6 +136,7 @@ const Sidebar = ({ darkMode, toggleTheme }: { darkMode: boolean; toggleTheme: ()
 // Componente principal que maneja el estado del tema
 const AppContent = () => {
   const [darkMode, setDarkMode] = useState<boolean>(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const isDark = localStorage.getItem("theme") === "dark";
@@ -148,10 +153,10 @@ const AppContent = () => {
 
   return (
     <div className="bg-[#fdfbf7] dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex transition-colors duration-300">
-      <Sidebar darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Sidebar darkMode={darkMode} toggleTheme={toggleTheme} collapsed={collapsed} setCollapsed={setCollapsed} />
       
       {/* Main Content */}
-      <main className="flex-1 p-6 space-y-6">
+      <main className={`flex-1 p-6 space-y-6 transition-all duration-300 ${collapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />

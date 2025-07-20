@@ -83,7 +83,6 @@ const UserManagement = () => {
     { key: "usuario", label: "Usuario" },
     { key: "email", label: "Correo" },
     { key: "telefono", label: "Teléfono" },
-    { key: "password_hash", label: "Contraseña" },
     { key: "rol_nombre", label: "Rol" },
     {
       key: "activo",
@@ -102,48 +101,54 @@ const UserManagement = () => {
   ];
 
   return (
-    <>
-      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2">Gestión de Usuarios</header>
+    <div className="max-w-7xl mx-auto">
+      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2 mb-8">Gestión de Usuarios</header>
 
       <section className="mt-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4">
           <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-xl">
             <input
               type="text"
               placeholder="Buscar por nombre, usuario o email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full"
+              className="px-4 py-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full text-base"
             />
-            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">
+            <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-6 py-3 rounded font-semibold cursor-pointer text-base">
               Buscar
             </button>
           </form>
-          <button onClick={handleAdd} className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold shadow cursor-pointer">
-            Agregar
+          <button onClick={handleAdd} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-semibold shadow cursor-pointer text-base">
+            Agregar Usuario
           </button>
         </div>
         {loading ? (
-          <p>Cargando usuarios...</p>
+          <div className="text-center py-8">
+            <p className="text-lg">Cargando usuarios...</p>
+          </div>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <div className="text-center py-8">
+            <p className="text-red-500 text-lg">{error}</p>
+          </div>
         ) : (
-          <DataTable
-            columns={columns}
-            data={users}
-            loading={loading}
-            error={error}
-            rowKey={(row) => row.id}
-            actions={(user) => (
-              <button onClick={() => handleEdit(user)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
-                Editar
-              </button>
-            )}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <DataTable
+              columns={columns}
+              data={users}
+              loading={loading}
+              error={error}
+              rowKey={(row) => row.id}
+              actions={(user) => (
+                <button onClick={() => handleEdit(user)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold cursor-pointer text-sm">
+                  Editar
+                </button>
+              )}
+            />
+          </div>
         )}
       </section>
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} user={editUser} roles={roles} />
-    </>
+    </div>
   );
 };
 

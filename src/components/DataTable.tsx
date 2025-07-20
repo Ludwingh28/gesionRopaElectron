@@ -30,33 +30,33 @@ function DataTable<T>({
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white dark:bg-gray-800 rounded shadow">
         <thead>
-          <tr>
+          <tr className="bg-gray-50 dark:bg-gray-700">
             {columns.map((col) => (
-              <th key={String(col.key)} className={"px-4 py-2 capitalize " + (col.className || "")}>{col.label}</th>
+              <th key={String(col.key)} className={"px-6 py-4 capitalize font-semibold text-gray-900 dark:text-white text-base " + (col.className || "")}>{col.label}</th>
             ))}
-            {actions && <th className="px-4 py-2">Acciones</th>}
+            {actions && <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white text-base">Acciones</th>}
           </tr>
         </thead>
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center py-4">Cargando...</td>
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center py-8 text-lg">Cargando...</td>
             </tr>
           ) : error ? (
             <tr>
-              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center text-red-500 py-4">{error}</td>
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center text-red-500 py-8 text-lg">{error}</td>
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center py-4">{emptyText}</td>
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center py-8 text-lg">{emptyText}</td>
             </tr>
           ) : (
             data.map((row) => (
-              <tr key={rowKey(row)} className="border-t border-gray-200 dark:border-gray-700">
+              <tr key={rowKey(row)} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 {columns.map((col) => (
-                  <td key={String(col.key)} className={"px-4 py-2 text-xs break-all " + (col.className || "")}>{col.render ? col.render(row) : String(row[col.key as keyof T] ?? "-")}</td>
+                  <td key={String(col.key)} className={"px-6 py-4 text-base break-all " + (col.className || "")}>{col.render ? col.render(row) : String(row[col.key as keyof T] ?? "-")}</td>
                 ))}
-                {actions && <td className="px-4 py-2 text-center">{actions(row)}</td>}
+                {actions && <td className="px-6 py-4 text-center">{actions(row)}</td>}
               </tr>
             ))
           )}
