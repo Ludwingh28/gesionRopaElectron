@@ -19635,9 +19635,8 @@ async function connectToDatabase() {
     pool = mysql.createPool(dbConfig);
     const connection2 = await pool.getConnection();
     connection2.release();
-    console.log("Conexion a MySQL establecida con exito y pool creado!");
   } catch (error) {
-    console.error("Error al conectar a la base de datos MySQL:", error);
+    console.error("Error al conectar a la base de datos:", error);
     throw error;
   }
 }
@@ -20419,11 +20418,12 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win;
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: path.join(process.env.VITE_PUBLIC, "public/LupitaLogo.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
     }
   });
+  win.maximize();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
@@ -20447,7 +20447,6 @@ app.on("activate", () => {
 app.whenReady().then(async () => {
   try {
     await connectToDatabase();
-    console.log("Conexion a la base de datos establecida con exito.");
     createWindow();
   } catch (error) {
     console.error("Error al conectar a la base de datos:", error);

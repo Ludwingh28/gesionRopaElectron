@@ -20,9 +20,8 @@ export async function connectToDatabase(): Promise<void> {
     pool = mysql.createPool(dbConfig);
     const connection = await pool.getConnection();
     connection.release();
-    console.log("Conexion a MySQL establecida con exito y pool creado!");
   } catch (error) {
-    console.error("Error al conectar a la base de datos MySQL:", error);
+    console.error("Error al conectar a la base de datos:", error);
     throw error;
   }
 }

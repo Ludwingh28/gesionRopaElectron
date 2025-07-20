@@ -1,11 +1,60 @@
-// Actualizar src/Login.tsx - Usar tipos globales
-
 import { useState, useEffect } from "react";
-import { Moon, Sun, User, Lock, Eye, EyeOff } from "lucide-react";
+import { Moon, Sun, User, Lock, Eye, EyeOff, Mail, MessageCircleCode, User as UserIcon, X } from "lucide-react";
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
+
+// Array de datos de soporte (igual que en Support.tsx)
+const supportData = [
+  {
+    nombre: "Ludwing Julian Herrera Justiniano",
+    telefono: "+591 78118005",
+    email: "ludwingh2807@gmail.com",
+  },
+  {
+    nombre: "Cristian David Ramirez Callejas",
+    telefono: "+591 75057788",
+    email: "cristian25ramirezrc@gmail.com",
+  },
+];
+
+// Componente para mostrar una card de soporte (igual que en Support.tsx)
+const SupportCard = ({ nombre, telefono, email, ccEmail }: { nombre: string; telefono: string; email: string; ccEmail: string }) => {
+  // Eliminar espacios y símbolos para el enlace de WhatsApp
+  const phoneNumber = telefono.replace(/[^\d]/g, "");
+  const whatsappMessage = encodeURIComponent(`Hola, necesito soporte con el Sistema de Gestión de Ropa "Lupita".`);
+  const whatsappLink = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 max-w-md w-full border border-[#f8cdd2] dark:border-[#d6a463] space-y-6">
+      <div className="flex items-center space-x-4">
+        <UserIcon className="text-pink-500 dark:text-[#d6a463]" />
+        <span className="text-gray-800 dark:text-white">
+          <strong>Nombre:</strong> {nombre}
+        </span>
+      </div>
+      <div className="flex items-center space-x-4">
+        <MessageCircleCode className="text-pink-500 dark:text-[#d6a463]" />
+        <span className="text-gray-800 dark:text-white">
+          <strong>Whatsapp:</strong>{" "}
+          <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline dark:text-green-400">
+            {telefono}
+          </a>
+        </span>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Mail className="text-pink-500 dark:text-[#d6a463]" />
+        <span className="text-gray-800 dark:text-white">
+          <strong>Email:</strong>{" "}
+          <a href={`mailto:${email}?cc=${ccEmail}&subject=Soporte: Sistema de Gestion de Ropa "Lupita"`} className="text-blue-600 hover:underline dark:text-blue-400">
+            {email}
+          </a>
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const Login = ({ onLoginSuccess }: LoginProps) => {
   // Estado para el usuario y contraseña
@@ -15,6 +64,8 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
   const [loading, setLoading] = useState(false);
   // Estado para el mensaje de error
   const [errorMessage, setErrorMessage] = useState("");
+  // Estado para el modal de soporte
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   // Estado para el modo oscuro
   const [darkMode, setDarkMode] = useState(true);
@@ -61,7 +112,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
         localStorage.setItem("currentUser", JSON.stringify(userData));
 
         setLoading(false);
-        
+
         // Llamar inmediatamente a la función de callback para redirigir
         onLoginSuccess();
       } else if (response.reason === "inactive") {
@@ -153,7 +204,64 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
             )}
           </button>
         </form>
+
+        {/* Texto de ayuda y soporte */}
+        <div className="mt-6 text-center">
+          <button onClick={() => setShowSupportModal(true)} className="text-sm text-gray-600 dark:text-gray-400 hover:text-[#e87e8a] dark:hover:text-[#d6a463] cursor-pointer transition-colors">
+            ¿Necesita ayuda? <span className="underline">Soporte</span>
+          </button>
+        </div>
       </div>
+
+      {/* Modal de Soporte */}
+      {showSupportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto mx-4">
+            {/* Header del modal */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Soporte</h2>
+              <button onClick={() => setShowSupportModal(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer">
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Contenido del modal */}
+            <div className="p-6">
+              {/* Notificación Tip */}
+              <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-blue-100 dark:bg-blue-800 rounded-full p-1">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-blue-800 dark:text-blue-300 text-sm font-medium">
+                    <strong>Tip:</strong> Haga click sobre el método de contacto y deje que nosotros nos encarguemos de abrirle la app
+                  </p>
+                </div>
+              </div>
+
+              {/* Cards de soporte */}
+              <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+                {supportData.map((soporte, idx) => {
+                  // Determinar el email para CC (el del otro contacto)
+                  const ccEmail = supportData.find((_, index) => index !== idx)?.email || "";
+
+                  return (
+                    <div key={idx} className={idx === 0 ? "mr-0 md:mr-4" : "ml-0 md:ml-4"}>
+                      <SupportCard {...soporte} ccEmail={ccEmail} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

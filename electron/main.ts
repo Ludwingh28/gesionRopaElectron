@@ -77,6 +77,8 @@ function createWindow() {
     },
   });
 
+  win.maximize();
+
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
@@ -112,7 +114,6 @@ app.on("activate", () => {
 app.whenReady().then(async () => {
   try {
     await connectToDatabase();
-    console.log("Conexion a la base de datos establecida con exito.");
     createWindow();
   } catch (error) {
     console.error("Error al conectar a la base de datos:", error);
