@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Package, Trash2, AlertTriangle, RefreshCw, Eye, TrendingDown } from "lucide-react";
+import { Package, Search, RefreshCw, Trash2, AlertTriangle, TrendingDown } from "lucide-react";
+
+interface InventoryItem {
+  id: number;
+  sku: string;
+  detalle: string;
+  marca: string;
+  categoria: string;
+  talla: string;
+  color: string;
+  stock_actual: number;
+  stock_minimo: number;
+  precio_venta_base: number;
+  precio_promotora: number;
+  producto_id: number;
+}
 
 interface Product {
   id: number;
@@ -11,187 +26,96 @@ interface Product {
   precio_promotora: number;
 }
 
-interface InventoryItem {
+// Interface para el usuario actual
+interface CurrentUser {
   id: number;
-  sku: string;
-  producto_id: number;
-  detalle: string;
-  marca: string;
-  categoria: string;
-  talla: string;
-  color: string;
-  stock_actual: number;
-  stock_minimo: number;
-  ubicacion?: string;
-  codigo_interno: string;
+  nombre: string;
+  usuario: string;
+  rol_nombre: string;
+  email: string;
 }
 
 const Stock = () => {
-  // Estados principales
-  const [products, setProducts] = useState<Product[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-
-  // Estados de UI
+  const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"inventory" | "without_inventory" | "low_stock">("inventory");
-
-  // Estados de paginación
+  const [viewMode, setViewMode] = useState<"all" | "low_stock" | "without_inventory">("all");
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(15);
 
-  // Cargar datos iniciales
+  const itemsPerPage = 15;
+
+  // Cargar usuario actual del localStorage
   useEffect(() => {
-    loadInitialData();
+    const userData = localStorage.getItem("currentUser");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      } catch (err) {
+        console.error("Error al parsear datos de usuario:", err);
+      }
+    }
   }, []);
 
-  // Resetear página al cambiar modo de vista o búsqueda
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [viewMode, search]);
-
-  const loadInitialData = async () => {
+  const loadInventory = async () => {
     setLoading(true);
     try {
-      const [productsData, inventoryData] = await Promise.all([(window.electronAPI as any).getProducts(""), (window.electronAPI as any).getInventoryList()]);
-
-      setProducts(productsData);
-      setInventory(inventoryData);
+      const result = await (window.electronAPI as any).getInventoryList("");
+      setInventory(result);
       setError("");
     } catch (err) {
-      console.error("Error al cargar datos:", err);
-      setError("Error al cargar datos iniciales");
+      console.error("Error al cargar inventario:", err);
+      setError("Error al cargar inventario");
     }
     setLoading(false);
   };
 
-  // Buscar productos sin inventario
-  const getProductsWithoutInventory = () => {
-    return products.filter((product) => !inventory.some((inv) => inv.producto_id === product.id));
+  const loadProducts = async () => {
+    try {
+      const result = await (window.electronAPI as any).getProducts("");
+      setProducts(result);
+    } catch (err) {
+      console.error("Error al cargar productos:", err);
+    }
   };
 
-  // Obtener productos con stock bajo
+  useEffect(() => {
+    loadInventory();
+    loadProducts();
+  }, []);
+
+  // Resetear página cuando cambie el modo de vista o búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [viewMode, search]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+  };
+
   const getLowStockItems = () => {
-    return inventory.filter((item) => item.stock_actual <= item.stock_minimo);
+    return inventory.filter((item) => (item.stock_actual || 0) <= (item.stock_minimo || 0));
   };
 
-  // Filtrar inventario por búsqueda
-  const filteredInventory = inventory.filter(
-    (item) =>
-      item.detalle.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.marca.toLowerCase().includes(search.toLowerCase()) ||
-      item.codigo_interno.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Productos sin inventario filtrados
-  const productsWithoutInventory = getProductsWithoutInventory().filter(
-    (product) =>
-      product.detalle.toLowerCase().includes(search.toLowerCase()) || product.codigo_interno.toLowerCase().includes(search.toLowerCase()) || product.marca.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Items con stock bajo filtrados
-  const lowStockItems = getLowStockItems().filter(
-    (item) =>
-      item.detalle.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.marca.toLowerCase().includes(search.toLowerCase()) ||
-      item.codigo_interno.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Calcular paginación por tipo de vista
-  const getInventoryPagination = () => {
-    const totalItems = filteredInventory.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentItems = filteredInventory.slice(startIndex, endIndex);
-    return { totalItems, totalPages, startIndex, endIndex, currentItems };
+  const getProductsWithoutInventory = () => {
+    const productsWithInventory = new Set(inventory.map((item) => item.producto_id));
+    return products.filter((product) => !productsWithInventory.has(product.id));
   };
 
-  const getLowStockPagination = () => {
-    const totalItems = lowStockItems.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentItems = lowStockItems.slice(startIndex, endIndex);
-    return { totalItems, totalPages, startIndex, endIndex, currentItems };
+  const getOutOfStockItems = () => {
+    return inventory.filter((item) => (item.stock_actual || 0) <= 0);
   };
 
-  const getWithoutInventoryPagination = () => {
-    const totalItems = productsWithoutInventory.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentItems = productsWithoutInventory.slice(startIndex, endIndex);
-    return { totalItems, totalPages, startIndex, endIndex, currentItems };
-  };
-
-  // Obtener paginación actual según el modo
-  const getCurrentPagination = () => {
-    switch (viewMode) {
-      case "inventory":
-        return getInventoryPagination();
-      case "low_stock":
-        return getLowStockPagination();
-      case "without_inventory":
-        return getWithoutInventoryPagination();
-      default:
-        return { totalItems: 0, totalPages: 0, startIndex: 0, endIndex: 0, currentItems: [] };
-    }
-  };
-
-  const { totalItems, totalPages, startIndex, endIndex, currentItems } = getCurrentPagination();
-
-  // Funciones de paginación
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  // Generar números de página para mostrar
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-  // Eliminar item de inventario
   const handleDeleteItem = async (item: InventoryItem) => {
+    if (currentUser?.rol_nombre === "promotora") {
+      alert("Como promotora, no tienes permisos para eliminar elementos del inventario.");
+      return;
+    }
+
     if (!confirm(`¿Eliminar inventario de ${item.detalle} (${item.talla} - ${item.color})?`)) {
       return;
     }
@@ -199,10 +123,7 @@ const Stock = () => {
     setLoading(true);
     try {
       await (window.electronAPI as any).deleteInventoryItem(item.id);
-
-      // Actualizar el estado local
       setInventory((prev) => prev.filter((inv) => inv.id !== item.id));
-
       setError("");
     } catch (err) {
       console.error("Error al eliminar item:", err);
@@ -211,19 +132,78 @@ const Stock = () => {
     setLoading(false);
   };
 
+  // Determinar si es promotora
+  const isPromotora = currentUser?.rol_nombre === "promotora";
+
   // Estadísticas rápidas
   const stats = {
     totalProducts: products.length,
     productsWithInventory: [...new Set(inventory.map((i) => i.producto_id))].length,
     totalSKUs: inventory.length,
-    totalStock: inventory.reduce((sum, item) => sum + item.stock_actual, 0),
+    totalStock: inventory.reduce((sum, item) => sum + (item.stock_actual || 0), 0),
     lowStock: getLowStockItems().length,
+    outOfStock: getOutOfStockItems().length,
     withoutInventory: getProductsWithoutInventory().length,
   };
 
+  // Función para obtener datos filtrados
+  const getFilteredData = () => {
+    let data: any[] = [];
+
+    switch (viewMode) {
+      case "all":
+        data = inventory;
+        break;
+      case "low_stock":
+        data = getLowStockItems();
+        break;
+      case "without_inventory":
+        data = getProductsWithoutInventory();
+        break;
+      default:
+        data = inventory;
+    }
+
+    // Filtrar por búsqueda si hay texto
+    if (search.trim()) {
+      data = data.filter((item: any) => {
+        const searchLower = search.toLowerCase();
+        if (viewMode === "without_inventory") {
+          return (
+            (item.detalle || "").toLowerCase().includes(searchLower) ||
+            (item.codigo_interno || "").toLowerCase().includes(searchLower) ||
+            (item.marca || "").toLowerCase().includes(searchLower) ||
+            (item.categoria || "").toLowerCase().includes(searchLower)
+          );
+        } else {
+          return (
+            (item.detalle || "").toLowerCase().includes(searchLower) ||
+            (item.sku || "").toLowerCase().includes(searchLower) ||
+            (item.marca || "").toLowerCase().includes(searchLower) ||
+            (item.color || "").toLowerCase().includes(searchLower) ||
+            (item.categoria || "").toLowerCase().includes(searchLower)
+          );
+        }
+      });
+    }
+
+    return data;
+  };
+
+  // Calcular datos de paginación
+  const filteredData = getFilteredData();
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const currentPageData = filteredData.slice(startIndex, endIndex);
+
   return (
     <div className="p-6">
-      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2 mb-6">Stock e Inventario</header>
+      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2 mb-6">
+        Stock e Inventario
+        {isPromotora && <div className="text-sm font-normal text-blue-600 dark:text-blue-400 mt-2">* Como promotora, puedes consultar el stock disponible pero no modificar inventario</div>}
+      </header>
 
       {error && (
         <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
@@ -234,255 +214,302 @@ const Stock = () => {
         </div>
       )}
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalProducts}</div>
-          <div className="text-sm text-blue-700 dark:text-blue-300">Productos Total</div>
-        </div>
-        <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.productsWithInventory}</div>
-          <div className="text-sm text-green-700 dark:text-green-300">Con Inventario</div>
-        </div>
-        <div className="bg-purple-100 dark:bg-purple-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalSKUs}</div>
-          <div className="text-sm text-purple-700 dark:text-purple-300">SKUs Total</div>
-        </div>
-        <div className="bg-indigo-100 dark:bg-indigo-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalStock}</div>
-          <div className="text-sm text-indigo-700 dark:text-indigo-300">Stock Total</div>
-        </div>
-        <div className="bg-orange-100 dark:bg-orange-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.lowStock}</div>
-          <div className="text-sm text-orange-700 dark:text-orange-300">Stock Bajo</div>
-        </div>
-        <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-lg text-center">
-          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.withoutInventory}</div>
-          <div className="text-sm text-red-700 dark:text-red-300">Sin Inventario</div>
-        </div>
-      </div>
-
-      {/* Alertas */}
-      {stats.lowStock > 0 && (
-        <div className="bg-orange-100 dark:bg-orange-900/20 border border-orange-400 dark:border-orange-700 text-orange-700 dark:text-orange-400 px-4 py-3 rounded mb-4">
-          <div className="flex items-center">
-            <TrendingDown className="mr-2" size={20} />
-            <div>
-              <strong>¡Atención!</strong> Tienes {stats.lowStock} productos con stock bajo.
-            </div>
+      {/* Estadísticas (solo para admin y developer) */}
+      {!isPromotora && (
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
+          <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalProducts}</div>
+            <div className="text-sm text-blue-700 dark:text-blue-300">Productos Total</div>
+          </div>
+          <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.productsWithInventory}</div>
+            <div className="text-sm text-green-700 dark:text-green-300">Con Inventario</div>
+          </div>
+          <div className="bg-purple-100 dark:bg-purple-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalSKUs}</div>
+            <div className="text-sm text-purple-700 dark:text-purple-300">SKUs Total</div>
+          </div>
+          <div className="bg-indigo-100 dark:bg-indigo-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalStock.toLocaleString()}</div>
+            <div className="text-sm text-indigo-700 dark:text-indigo-300">Stock Total</div>
+          </div>
+          <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.outOfStock}</div>
+            <div className="text-sm text-red-700 dark:text-red-300">Sin Stock</div>
+          </div>
+          <div className="bg-orange-100 dark:bg-orange-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.lowStock}</div>
+            <div className="text-sm text-orange-700 dark:text-orange-300">Stock Bajo</div>
+          </div>
+          <div className="bg-yellow-100 dark:bg-yellow-900/20 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.withoutInventory}</div>
+            <div className="text-sm text-yellow-700 dark:text-yellow-300">Sin Inventario</div>
           </div>
         </div>
       )}
 
-      {stats.withoutInventory > 0 && (
-        <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded mb-6">
-          <div className="flex items-center">
-            <AlertTriangle className="mr-2" size={20} />
-            <div>
-              <strong>¡Atención!</strong> Tienes {stats.withoutInventory} productos sin inventario.
+      {/* Notificaciones/Alertas (solo para admin y developer) */}
+      {!isPromotora && (
+        <>
+          {stats.outOfStock > 0 && (
+            <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-2 rounded mb-4">
+              <div className="flex items-center">
+                <AlertTriangle className="mr-2" size={16} />
+                <div className="text-sm">
+                  <strong>¡Productos Agotados!</strong> Tienes {stats.outOfStock} productos sin stock disponible.
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+
+          {stats.lowStock > 0 && (
+            <div className="bg-orange-100 dark:bg-orange-900/20 border border-orange-400 dark:border-orange-700 text-orange-700 dark:text-orange-400 px-4 py-2 rounded mb-4">
+              <div className="flex items-center">
+                <TrendingDown className="mr-2" size={16} />
+                <div className="text-sm">
+                  <strong>¡Stock Bajo!</strong> Tienes {stats.lowStock} productos con stock bajo que necesitan reposición.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {stats.withoutInventory > 0 && (
+            <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400 px-4 py-2 rounded mb-4">
+              <div className="flex items-center">
+                <AlertTriangle className="mr-2" size={16} />
+                <div className="text-sm">
+                  <strong>¡Sin Inventario!</strong> Tienes {stats.withoutInventory} productos sin inventario configurado.
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Controles superiores */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        {/* Búsqueda */}
-        <div className="flex gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Buscar por código, producto, SKU o marca..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 md:w-80 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
-          <button onClick={loadInitialData} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold cursor-pointer disabled:opacity-50">
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+      {/* Controles de búsqueda y filtros */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+        <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar por SKU, producto, marca, color..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d16b77] dark:hover:bg-[#c1935a] transition cursor-pointer">
+            Buscar
           </button>
-        </div>
+        </form>
 
-        {/* Botones de vista */}
         <div className="flex gap-2">
-          <button
-            onClick={() => setViewMode("inventory")}
-            className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
-              viewMode === "inventory" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-          >
-            <Eye size={16} />
-            Inventario ({stats.totalSKUs})
-          </button>
-          <button
-            onClick={() => setViewMode("low_stock")}
-            className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
-              viewMode === "low_stock" ? "bg-orange-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-          >
-            <TrendingDown size={16} />
-            Stock Bajo ({stats.lowStock})
-          </button>
-          <button
-            onClick={() => setViewMode("without_inventory")}
-            className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
-              viewMode === "without_inventory" ? "bg-red-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-          >
-            <AlertTriangle size={16} />
-            Sin Inventario ({stats.withoutInventory})
+          {/* Filtros de vista (solo para admin y developer) */}
+          {!isPromotora && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode("all")}
+                className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
+                  viewMode === "all" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                <Package size={16} />
+                Todo ({stats.totalSKUs})
+              </button>
+              <button
+                onClick={() => setViewMode("low_stock")}
+                className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
+                  viewMode === "low_stock" ? "bg-orange-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                <TrendingDown size={16} />
+                Stock Bajo ({stats.lowStock})
+              </button>
+              <button
+                onClick={() => setViewMode("without_inventory")}
+                className={`px-4 py-2 rounded-md font-semibold cursor-pointer flex items-center gap-2 ${
+                  viewMode === "without_inventory" ? "bg-red-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                <AlertTriangle size={16} />
+                Sin Inventario ({stats.withoutInventory})
+              </button>
+            </div>
+          )}
+
+          <button onClick={loadInventory} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition cursor-pointer" disabled={loading}>
+            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
       {/* Contenido principal */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            {viewMode === "inventory" && (
-              <>
-                <Package className="mr-2" size={20} />
-                Inventario Completo
-              </>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        {/* Información de paginación */}
+        {totalItems > 0 && (
+          <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
+            <span>
+              Mostrando {startIndex + 1} a {endIndex} de {totalItems} {viewMode === "without_inventory" ? "productos" : "elementos"}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+                >
+                  Siguiente
+                </button>
+              </div>
             )}
-            {viewMode === "low_stock" && (
-              <>
-                <TrendingDown className="mr-2" size={20} />
-                Productos con Stock Bajo
-              </>
-            )}
-            {viewMode === "without_inventory" && (
-              <>
-                <AlertTriangle className="mr-2" size={20} />
-                Productos sin Inventario
-              </>
-            )}
-          </h3>
+          </div>
+        )}
 
-          {/* Información de paginación */}
-          {totalItems > 0 && (
-            <div className="flex justify-between items-center mb-4 text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de {totalItems} {viewMode === "without_inventory" ? "productos" : "items"}
-              </span>
-              <span>
-                Página {currentPage} de {totalPages}
-              </span>
-            </div>
-          )}
-
-          {totalItems === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-              {search
-                ? "No se encontraron resultados"
-                : viewMode === "inventory"
-                ? "No hay inventario disponible"
-                : viewMode === "low_stock"
-                ? "No hay productos con stock bajo"
-                : "¡Todos los productos tienen inventario!"}
-            </p>
-          ) : (
-            <>
-              {/* Tabla para inventario completo */}
-              {viewMode === "inventory" && (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 font-semibold">Producto</th>
-                        <th className="text-left py-3 px-4 font-semibold">SKU</th>
-                        <th className="text-center py-3 px-4 font-semibold">Talla</th>
-                        <th className="text-center py-3 px-4 font-semibold">Color</th>
-                        <th className="text-center py-3 px-4 font-semibold">Stock</th>
-                        <th className="text-center py-3 px-4 font-semibold">Estado</th>
-                        <th className="text-center py-3 px-4 font-semibold">Acciones</th>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e87e8a] dark:border-[#d6a463] mx-auto mb-4"></div>
+            <p className="text-gray-500">Cargando inventario...</p>
+          </div>
+        ) : (
+          <>
+            {/* Tabla principal de inventario */}
+            {(viewMode === "all" || isPromotora) && (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                      <th className="text-left py-3 px-4 font-semibold">Producto</th>
+                      <th className="text-left py-3 px-4 font-semibold">SKU</th>
+                      <th className="text-center py-3 px-4 font-semibold">Talla</th>
+                      <th className="text-center py-3 px-4 font-semibold">Color</th>
+                      <th className="text-center py-3 px-4 font-semibold">Stock</th>
+                      <th className="text-center py-3 px-4 font-semibold">Estado</th>
+                      <th className="text-center py-3 px-4 font-semibold">Precio Base</th>
+                      {isPromotora && <th className="text-center py-3 px-4 font-semibold">Precio Promotora</th>}
+                      {!isPromotora && <th className="text-center py-3 px-4 font-semibold">Acciones</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentPageData.length === 0 ? (
+                      <tr>
+                        <td colSpan={isPromotora ? 8 : 8} className="text-center py-8 text-gray-500">
+                          No se encontraron elementos en el inventario
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(currentItems as InventoryItem[]).map((item) => (
-                        <tr key={item.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    ) : (
+                      currentPageData.map((item: any) => (
+                        <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="py-3 px-4">
                             <div>
-                              <div className="font-medium">{item.detalle}</div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                {item.codigo_interno} | {item.marca}
+                              <div className="font-medium">{item.detalle || "Sin detalle"}</div>
+                              <div className="text-sm text-gray-500">
+                                {item.marca || "Sin marca"} - {item.categoria || "Sin categoría"}
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 px-4 font-mono text-sm">{item.sku}</td>
-                          <td className="py-3 px-4 text-center">{item.talla}</td>
-                          <td className="py-3 px-4 text-center">{item.color}</td>
+                          <td className="py-3 px-4 font-mono text-sm">{item.sku || "Sin SKU"}</td>
+                          <td className="py-3 px-4 text-center">{item.talla || "N/A"}</td>
+                          <td className="py-3 px-4 text-center">{item.color || "N/A"}</td>
                           <td className="py-3 px-4 text-center">
                             <span
                               className={`font-semibold ${
-                                item.stock_actual <= 0
+                                (item.stock_actual || 0) <= 0
                                   ? "text-red-600 dark:text-red-400"
-                                  : item.stock_actual <= item.stock_minimo
+                                  : (item.stock_actual || 0) <= (item.stock_minimo || 0)
                                   ? "text-orange-600 dark:text-orange-400"
                                   : "text-green-600 dark:text-green-400"
                               }`}
                             >
-                              {item.stock_actual}
+                              {item.stock_actual || 0}
                             </span>
-                            <div className="text-xs text-gray-500">Mín: {item.stock_minimo}</div>
+                            <div className="text-xs text-gray-500">Mín: {item.stock_minimo || 0}</div>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            {item.stock_actual <= 0 ? (
+                            {(item.stock_actual || 0) <= 0 ? (
                               <span className="px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-xs">Sin Stock</span>
-                            ) : item.stock_actual <= item.stock_minimo ? (
+                            ) : (item.stock_actual || 0) <= (item.stock_minimo || 0) ? (
                               <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-full text-xs">Stock Bajo</span>
                             ) : (
                               <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs">OK</span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button onClick={() => handleDeleteItem(item)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Eliminar">
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
+                          <td className="py-3 px-4 text-center">Bs. {parseFloat(item.precio_venta_base) > 0 ? parseFloat(item.precio_venta_base).toFixed(2) : "0.00"}</td>
+                          {isPromotora && (
+                            <td className="py-3 px-4 text-center">
+                              <span className="font-semibold text-green-600 dark:text-green-400">
+                                Bs. {parseFloat(item.precio_promotora) > 0 ? parseFloat(item.precio_promotora).toFixed(2) : "0.00"}
+                              </span>
+                              <div className="text-xs text-gray-500">+20%</div>
+                            </td>
+                          )}
+                          {!isPromotora && (
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex justify-center gap-2">
+                                <button onClick={() => handleDeleteItem(item)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Eliminar">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-              {/* Tabla para stock bajo */}
-              {viewMode === "low_stock" && (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 font-semibold">Producto</th>
-                        <th className="text-left py-3 px-4 font-semibold">SKU</th>
-                        <th className="text-center py-3 px-4 font-semibold">Talla</th>
-                        <th className="text-center py-3 px-4 font-semibold">Color</th>
-                        <th className="text-center py-3 px-4 font-semibold">Stock</th>
-                        <th className="text-center py-3 px-4 font-semibold">Estado</th>
-                        <th className="text-center py-3 px-4 font-semibold">Acciones</th>
+            {/* Vista de stock bajo (solo para admin y developer) */}
+            {viewMode === "low_stock" && !isPromotora && (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20">
+                      <th className="text-left py-3 px-4 font-semibold">Producto</th>
+                      <th className="text-left py-3 px-4 font-semibold">SKU</th>
+                      <th className="text-center py-3 px-4 font-semibold">Talla</th>
+                      <th className="text-center py-3 px-4 font-semibold">Color</th>
+                      <th className="text-center py-3 px-4 font-semibold">Stock Actual</th>
+                      <th className="text-center py-3 px-4 font-semibold">Stock Mínimo</th>
+                      <th className="text-center py-3 px-4 font-semibold">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentPageData.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-8 text-gray-500">
+                          ¡Excelente! No hay productos con stock bajo
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(currentItems as InventoryItem[]).map((item) => (
-                        <tr key={item.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    ) : (
+                      currentPageData.map((item: any) => (
+                        <tr key={item.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/10">
                           <td className="py-3 px-4">
                             <div>
-                              <div className="font-medium">{item.detalle}</div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                {item.codigo_interno} | {item.marca}
+                              <div className="font-medium">{item.detalle || "Sin detalle"}</div>
+                              <div className="text-sm text-gray-500">
+                                {item.marca || "Sin marca"} - {item.categoria || "Sin categoría"}
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 px-4 font-mono text-sm">{item.sku}</td>
-                          <td className="py-3 px-4 text-center">{item.talla}</td>
-                          <td className="py-3 px-4 text-center">{item.color}</td>
+                          <td className="py-3 px-4 font-mono text-sm">{item.sku || "Sin SKU"}</td>
+                          <td className="py-3 px-4 text-center">{item.talla || "N/A"}</td>
+                          <td className="py-3 px-4 text-center">{item.color || "N/A"}</td>
                           <td className="py-3 px-4 text-center">
-                            <span className="font-semibold text-orange-600 dark:text-orange-400">{item.stock_actual}</span>
-                            <div className="text-xs text-gray-500">Mín: {item.stock_minimo}</div>
+                            <span className="font-semibold text-orange-600 dark:text-orange-400">{item.stock_actual || 0}</span>
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-full text-xs">Stock Bajo</span>
-                          </td>
+                          <td className="py-3 px-4 text-center">{item.stock_minimo || 0}</td>
                           <td className="py-3 px-4 text-center">
                             <div className="flex justify-center gap-2">
                               <button onClick={() => handleDeleteItem(item)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Eliminar">
@@ -491,95 +518,96 @@ const Stock = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-              {/* Vista de productos sin inventario */}
-              {viewMode === "without_inventory" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(currentItems as Product[]).map((product) => (
-                    <div key={product.id} className="border border-red-200 dark:border-red-700 rounded-lg p-4 bg-red-50 dark:bg-red-900/20">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h5 className="font-medium text-sm">{product.detalle}</h5>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            {product.codigo_interno} | {product.marca}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">Precio: Bs. {product.precio_venta_base}</p>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-red-600 dark:text-red-400 text-sm font-semibold">Necesita inventario</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {/* Vista de productos sin inventario (solo para admin y developer) */}
+            {viewMode === "without_inventory" && !isPromotora && (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
+                      <th className="text-left py-3 px-4 font-semibold">Código</th>
+                      <th className="text-left py-3 px-4 font-semibold">Producto</th>
+                      <th className="text-left py-3 px-4 font-semibold">Marca</th>
+                      <th className="text-left py-3 px-4 font-semibold">Categoría</th>
+                      <th className="text-center py-3 px-4 font-semibold">Precio Base</th>
+                      <th className="text-center py-3 px-4 font-semibold">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentPageData.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-8 text-gray-500">
+                          ¡Perfecto! Todos los productos tienen inventario configurado
+                        </td>
+                      </tr>
+                    ) : (
+                      currentPageData.map((product: any) => (
+                        <tr key={product.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/10">
+                          <td className="py-3 px-4 font-mono text-sm">{product.codigo_interno || "Sin código"}</td>
+                          <td className="py-3 px-4 font-medium">{product.detalle || "Sin detalle"}</td>
+                          <td className="py-3 px-4">{product.marca || "Sin marca"}</td>
+                          <td className="py-3 px-4">{product.categoria || "Sin categoría"}</td>
+                          <td className="py-3 px-4 text-center">Bs. {parseFloat(product.precio_venta_base) > 0 ? parseFloat(product.precio_venta_base).toFixed(2) : "0.00"}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-xs flex items-center justify-center gap-1">
+                              <AlertTriangle size={12} />
+                              Sin Inventario
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
 
-              {/* Controles de paginación */}
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de {totalItems} {viewMode === "without_inventory" ? "productos" : "items"}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* Botón anterior */}
-                    <button
-                      onClick={goToPrevPage}
-                      disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
-                        currentPage === 1
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                          : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-                      }`}
-                    >
-                      Anterior
-                    </button>
-
-                    {/* Números de página */}
-                    <div className="flex items-center gap-1">
-                      {getPageNumbers().map((pageNumber, index) => (
-                        <React.Fragment key={index}>
-                          {pageNumber === "..." ? (
-                            <span className="px-2 py-1 text-gray-500">...</span>
-                          ) : (
-                            <button
-                              onClick={() => goToPage(pageNumber as number)}
-                              className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
-                                currentPage === pageNumber
-                                  ? "bg-[#e87e8a] dark:bg-[#d6a463] text-white"
-                                  : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-                              }`}
-                            >
-                              {pageNumber}
-                            </button>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
-
-                    {/* Botón siguiente */}
-                    <button
-                      onClick={goToNextPage}
-                      disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
-                        currentPage === totalPages
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                          : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-                      }`}
-                    >
-                      Siguiente
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        {/* Controles de paginación inferiores */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+              >
+                ««
+              </button>
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+              >
+                « Anterior
+              </button>
+              <span className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+              >
+                Siguiente »
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded disabled:opacity-50 cursor-pointer"
+              >
+                »»
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

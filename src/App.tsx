@@ -10,15 +10,43 @@ import ProductManagement from "./sections/ProductManagement";
 import Reports from "./sections/Reports";
 import UserManagement from "./sections/UserManagement";
 
+// Definir interface para el usuario actual
+interface CurrentUser {
+  id: number;
+  nombre: string;
+  usuario: string;
+  rol_nombre: string;
+  email: string;
+}
+
 // Componente Sidebar que puede usar useLocation
-const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: { 
-  darkMode: boolean; 
-  toggleTheme: () => void; 
-  collapsed: boolean; 
-  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>; 
+const Sidebar = ({
+  darkMode,
+  toggleTheme,
+  collapsed,
+  setCollapsed,
+}: {
+  darkMode: boolean;
+  toggleTheme: () => void;
+  collapsed: boolean;
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  // Cargar usuario del localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem("currentUser");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      } catch (err) {
+        console.error("Error al parsear datos de usuario:", err);
+      }
+    }
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -27,7 +55,8 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
     return location.pathname.startsWith(path);
   };
 
-  const navItems = [
+  // Definir todos los elementos del navbar
+  const allNavItems = [
     { to: "/", icon: <HomeIcon size={20} />, label: "Inicio" },
     { to: "/shop", icon: <ShoppingCart size={20} />, label: "Ventas" },
     { to: "/stock", icon: <PackageCheck size={20} />, label: "Stock Disponible" },
@@ -38,6 +67,30 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
     { to: "/soporte", icon: <Headset size={20} />, label: "Soporte" },
   ];
 
+  // Filtrar elementos del navbar según el rol
+  const getNavItemsForRole = (role: string) => {
+    switch (role) {
+      case "developer":
+        // Developer puede ver todo
+        return allNavItems;
+
+      case "admin":
+        // Admin puede ver todo
+        return allNavItems;
+
+      case "promotora":
+        // Promotoras solo pueden ver: Inicio, Ventas, Stock Disponible y Soporte
+        return allNavItems.filter((item) => ["/", "/shop", "/stock", "/soporte"].includes(item.to));
+
+      default:
+        // Por defecto, solo inicio y soporte
+        return allNavItems.filter((item) => ["/", "/soporte"].includes(item.to));
+    }
+  };
+
+  // Obtener los elementos del navbar para el rol actual
+  const navItems = currentUser ? getNavItemsForRole(currentUser.rol_nombre) : [];
+
   // Sidebar para desktop
   return (
     <>
@@ -45,7 +98,7 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
       <button
         className="fixed top-4 left-4 z-50 md:hidden bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg border border-gray-200 dark:border-gray-700"
         onClick={() => setMobileOpen(true)}
-        style={{ display: mobileOpen ? 'none' : 'block' }}
+        style={{ display: mobileOpen ? "none" : "block" }}
         aria-label="Abrir menú"
       >
         <ChevronRight size={24} />
@@ -53,19 +106,19 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
 
       {/* Sidebar overlay para mobile */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 dark:bg-black/60 transition-opacity ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} md:hidden`}
+        className={`fixed inset-0 z-40 bg-black/40 dark:bg-black/60 transition-opacity ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} md:hidden`}
         onClick={() => setMobileOpen(false)}
       />
       <aside
         className={`fixed top-0 left-0 z-50 h-full bg-[#f3f4f6] dark:bg-gray-800 p-4 space-y-4 flex flex-col transition-all duration-300
-          ${collapsed ? 'w-20' : 'w-64'}
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${collapsed ? "w-20" : "w-64"}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
           shadow-lg
         `}
-        style={{ minHeight: '100vh' }}
+        style={{ minHeight: "100vh" }}
       >
-        <div className={`flex items-center justify-between mb-6 ${collapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center justify-between mb-6 ${collapsed ? "justify-center" : ""}`}>
           {!collapsed && <h2 className="text-2xl font-bold">Lupita Store</h2>}
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className="hover:scale-110 transition cursor-pointer">
@@ -75,7 +128,7 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
             <button
               className="hidden md:inline-flex items-center justify-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
               onClick={() => setCollapsed(!collapsed)}
-              aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+              aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
             >
               {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
@@ -84,7 +137,7 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
               className="md:hidden inline-flex items-center justify-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
               onClick={() => setMobileOpen(false)}
               aria-label="Cerrar menú"
-              style={{ display: mobileOpen ? 'inline-flex' : 'none' }}
+              style={{ display: mobileOpen ? "inline-flex" : "none" }}
             >
               <ChevronLeft size={24} />
             </button>
@@ -95,10 +148,8 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
             <Link
               key={to}
               to={to}
-              className={`group flex items-center ${collapsed ? 'justify-center' : ''} space-x-2 p-2 rounded cursor-pointer transition-colors relative
-                ${isActive(to)
-                  ? 'bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium'
-                  : 'hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]'}
+              className={`group flex items-center ${collapsed ? "justify-center" : ""} space-x-2 p-2 rounded cursor-pointer transition-colors relative
+                ${isActive(to) ? "bg-[#f8cdd2] dark:bg-[#d6a463] text-gray-900 dark:text-white font-medium" : "hover:bg-[#f8cdd2] dark:hover:bg-[#d6a463]"}
               `}
             >
               {icon}
@@ -116,7 +167,9 @@ const Sidebar = ({ darkMode, toggleTheme, collapsed, setCollapsed }: {
             onClick={() => {
               window.location.href = "/login";
             }}
-            className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} space-x-2 p-2 rounded cursor-pointer transition-colors mt-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 font-medium relative`}
+            className={`w-full flex items-center ${
+              collapsed ? "justify-center" : ""
+            } space-x-2 p-2 rounded cursor-pointer transition-colors mt-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 font-medium relative group`}
             type="button"
           >
             <LogOut size={20} />
@@ -154,9 +207,9 @@ const AppContent = () => {
   return (
     <div className="bg-[#fdfbf7] dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex transition-colors duration-300">
       <Sidebar darkMode={darkMode} toggleTheme={toggleTheme} collapsed={collapsed} setCollapsed={setCollapsed} />
-      
+
       {/* Main Content */}
-      <main className={`flex-1 p-6 space-y-6 transition-all duration-300 ${collapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+      <main className={`flex-1 p-6 space-y-6 transition-all duration-300 ${collapsed ? "md:ml-20" : "md:ml-64"}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />

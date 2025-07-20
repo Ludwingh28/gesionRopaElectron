@@ -350,7 +350,11 @@ const Shop = () => {
                 onKeyPress={(e) => e.key === "Enter" && searchProduct()}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
-              <button onClick={searchProduct} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold cursor-pointer disabled:opacity-50">
+              <button
+                onClick={searchProduct}
+                disabled={loading}
+                className="px-4 py-2 bg-[#e87e8a] dark:bg-[#d6a463] hover:bg-[#d16b77] dark:hover:bg-[#c1935a]  text-white rounded-md font-semibold cursor-pointer disabled:opacity-50"
+              >
                 {loading ? "Buscando..." : "Buscar"}
               </button>
             </div>

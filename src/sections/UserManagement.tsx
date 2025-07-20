@@ -3,6 +3,15 @@ import Modal from "../components/UserManagement/Modal";
 import DataTable, { DataTableColumn } from "../components/DataTable";
 import type { User, Role, UserCreateData, UserUpdateData } from "../types/global";
 
+// Interface para el usuario actual
+interface CurrentUser {
+  id: number;
+  nombre: string;
+  usuario: string;
+  rol_nombre: string;
+  email: string;
+}
+
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
@@ -11,6 +20,20 @@ const UserManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  // Cargar usuario actual del localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem("currentUser");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      } catch (err) {
+        console.error("Error al parsear datos de usuario:", err);
+      }
+    }
+  }, []);
 
   const fetchUsers = async (searchValue = "") => {
     setLoading(true);
@@ -18,7 +41,16 @@ const UserManagement = () => {
     try {
       // @ts-ignore
       const result = await window.electronAPI.getUsers(searchValue);
-      setUsers(result);
+
+      // Filtrar usuarios según el rol del usuario actual
+      let filteredUsers = result;
+      if (currentUser?.rol_nombre === "admin") {
+        // Los admin no pueden ver usuarios developers
+        filteredUsers = result.filter((user: User) => user.rol_nombre !== "developer");
+      }
+      // Los developers pueden ver todo, las promotoras no deberían acceder a esta sección
+
+      setUsers(filteredUsers);
     } catch (err) {
       setError("Error al cargar usuarios");
     }
@@ -28,13 +60,24 @@ const UserManagement = () => {
   const fetchRoles = async () => {
     // @ts-ignore
     const result = await window.electronAPI.getRoles();
-    setRoles(result);
+
+    // Filtrar roles según el usuario actual
+    let filteredRoles = result;
+    if (currentUser?.rol_nombre === "admin") {
+      // Los admin no pueden asignar el rol de developer
+      filteredRoles = result.filter((role: Role) => role.nombre !== "developer");
+    }
+    // Los developers pueden ver todos los roles
+
+    setRoles(filteredRoles);
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchRoles();
-  }, []);
+    if (currentUser) {
+      fetchUsers();
+      fetchRoles();
+    }
+  }, [currentUser]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +121,18 @@ const UserManagement = () => {
     }
   };
 
+  // Verificar si el usuario actual tiene acceso a esta sección
+  if (currentUser && !["admin", "developer"].includes(currentUser.rol_nombre)) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Acceso Denegado</h2>
+          <p className="text-gray-600 dark:text-gray-400">No tienes permisos para acceder a la gestión de usuarios.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Columnas para DataTable
   const columns: DataTableColumn<User>[] = [
     { key: "nombre", label: "Nombre" },
@@ -103,7 +158,12 @@ const UserManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2 mb-8">Gestión de Usuarios</header>
+      <header className="text-3xl font-bold border-b border-[#e19ea6] dark:border-[#d6a463] pb-2 mb-8">
+        Gestión de Usuarios
+        {currentUser?.rol_nombre === "admin" && (
+          <div className="text-sm font-normal text-orange-600 dark:text-orange-400 mt-2">* Como administrador, no puedes ver ni gestionar usuarios desarrolladores por seguridad</div>
+        )}
+      </header>
 
       <section className="mt-6">
         <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4">

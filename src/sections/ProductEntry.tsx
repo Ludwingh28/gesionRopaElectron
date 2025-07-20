@@ -209,7 +209,7 @@ const ProductEntry = () => {
               <button
                 onClick={searchProducts}
                 disabled={searching || !search.trim()}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold cursor-pointer disabled:opacity-50 flex items-center"
+                className="px-4 py-2 bg-[#e87e8a] dark:bg-[#d6a463] hover:bg-[#d16b77] dark:hover:bg-[#c1935a]  text-white rounded-md font-semibold cursor-pointer disabled:opacity-50 flex items-center"
               >
                 {searching ? <RefreshCw className="animate-spin" size={16} /> : <Search size={16} />}
                 <span className="ml-2">{searching ? "Buscando..." : "Buscar"}</span>
