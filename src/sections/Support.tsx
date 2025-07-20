@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Mail, MessageCircleCode, User } from "lucide-react";
 
 // Array de datos de soporte
@@ -53,11 +53,9 @@ const SupportCard = ({ nombre, telefono, email, ccEmail }: { nombre: string; tel
 };
 
 const Support = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
+  // Removemos el estado darkMode no utilizado
   useEffect(() => {
     const isDark = localStorage.getItem("theme") === "dark";
-    setDarkMode(isDark);
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
@@ -83,7 +81,8 @@ const Support = () => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-8">
           {supportData.map((soporte, idx) => {
             // Determinar el email para CC (el del otro contacto)
-            const ccEmail = supportData.find((item, index) => index !== idx)?.email || "";
+            // Usamos _ en lugar de item para indicar que no se usa el primer parámetro
+            const ccEmail = supportData.find((_, index) => index !== idx)?.email || "";
 
             return (
               <div key={idx} className={idx === 0 ? "mr-4" : "ml-4"}>
