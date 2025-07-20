@@ -19843,7 +19843,9 @@ async function getInventoryList() {
       m.nombre AS marca,
       c.nombre AS categoria,
       t.nombre AS talla,
-      col.nombre AS color
+      col.nombre AS color,
+      CAST(p.precio_venta_base AS DECIMAL(10,2)) as precio_venta_base,
+      CAST(p.precio_promotora AS DECIMAL(10,2)) as precio_promotora
     FROM inventario i
     JOIN productos p ON i.producto_id = p.id
     JOIN marcas m ON p.marca_id = m.id
@@ -19857,7 +19859,9 @@ async function getInventoryList() {
   return rows.map((row) => ({
     ...row,
     stock_actual: Number(row.stock_actual) || 0,
-    stock_minimo: Number(row.stock_minimo) || 0
+    stock_minimo: Number(row.stock_minimo) || 0,
+    precio_venta_base: Number(row.precio_venta_base) || 0,
+    precio_promotora: Number(row.precio_promotora) || 0
   }));
 }
 async function getTallas() {
