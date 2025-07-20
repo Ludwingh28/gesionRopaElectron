@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../components/UserManagement/Modal";
 import DataTable, { DataTableColumn } from "../components/DataTable";
+import type { User, Role, UserCreateData, UserUpdateData } from "../types/global";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editUser, setEditUser] = useState<any | null>(null);
-  const [roles, setRoles] = useState<any[]>([]);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   const fetchUsers = async (searchValue = "") => {
     setLoading(true);
@@ -55,12 +56,12 @@ const UserManagement = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: User) => {
     setEditUser(user);
     setModalOpen(true);
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: UserCreateData | UserUpdateData) => {
     let res;
     if (editUser) {
       // @ts-ignore
@@ -78,7 +79,7 @@ const UserManagement = () => {
   };
 
   // Columnas para DataTable
-  const columns: DataTableColumn<any>[] = [
+  const columns: DataTableColumn<User>[] = [
     { key: "nombre", label: "Nombre" },
     { key: "usuario", label: "Usuario" },
     { key: "email", label: "Correo" },
