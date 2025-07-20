@@ -86,29 +86,32 @@ const Home = () => {
     }
   }, []);
 
-  const loadStatsForRole = useCallback(async (role: string, userId: number) => {
-    setLoading(true);
-    setError("");
+  const loadStatsForRole = useCallback(
+    async (role: string, userId: number) => {
+      setLoading(true);
+      setError("");
 
-    try {
-      if (role === "admin") {
-        await loadAdminStats();
-      } else if (role === "promotora") {
-        await loadPromotoraStats(userId);
-      } else if (role === "developer") {
-        setStats({ desarrolladorInfo: "¡Bienvenido al sistema, Developer!" });
+      try {
+        if (role === "admin") {
+          await loadAdminStats();
+        } else if (role === "promotora") {
+          await loadPromotoraStats(userId);
+        } else if (role === "developer") {
+          setStats({ desarrolladorInfo: "¡Bienvenido al sistema, Developer!" });
+        }
+      } catch (err) {
+        console.error("Error al cargar estadísticas:", err);
+        setError("Error al cargar las estadísticas");
       }
-    } catch (err) {
-      console.error("Error al cargar estadísticas:", err);
-      setError("Error al cargar las estadísticas");
-    }
 
-    setLoading(false);
-  }, [loadAdminStats, loadPromotoraStats]);
+      setLoading(false);
+    },
+    [loadAdminStats, loadPromotoraStats]
+  );
 
-  // Cargar usuario del localStorage
+  // Cargar usuario del sessionStorage
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         const user = JSON.parse(userData);

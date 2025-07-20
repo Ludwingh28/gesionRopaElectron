@@ -11,8 +11,8 @@ const MainApp = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay un usuario autenticado en localStorage
-    const userData = localStorage.getItem("currentUser");
+    // Verificar si hay un usuario autenticado en sessionStorage
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         const user = JSON.parse(userData);
@@ -21,7 +21,7 @@ const MainApp = () => {
         }
       } catch (error) {
         console.error("Error al parsear datos de usuario:", error);
-        localStorage.removeItem("currentUser");
+        sessionStorage.removeItem("currentUser");
       }
     }
     setIsLoading(false);
@@ -32,7 +32,7 @@ const MainApp = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("currentUser");
+    sessionStorage.removeItem("currentUser");
     setIsAuthenticated(false);
   };
 
@@ -57,7 +57,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 // Use contextBridge
-if (window.ipcRenderer && typeof window.ipcRenderer.on === 'function') {
+if (window.ipcRenderer && typeof window.ipcRenderer.on === "function") {
   window.ipcRenderer.on("main-process-message", (_event, message) => {
     console.log(message);
   });

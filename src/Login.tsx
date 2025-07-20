@@ -101,7 +101,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
       const response = await window.electronAPI.authenticateUser(username, password);
 
       if (response.success && response.user) {
-        // Guardar información del usuario en localStorage
+        // Guardar información del usuario en sessionStorage
         const userData = {
           id: response.user.id || 1, // Asegurar que tenga un ID
           nombre: response.user.nombre || username,
@@ -109,7 +109,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
           rol_nombre: response.user.rol_nombre,
           email: response.user.email || "",
         };
-        localStorage.setItem("currentUser", JSON.stringify(userData));
+        sessionStorage.setItem("currentUser", JSON.stringify(userData));
 
         setLoading(false);
 

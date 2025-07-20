@@ -50,7 +50,7 @@ const ProductEntry = () => {
 
   // Cargar usuario actual
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         setCurrentUser(JSON.parse(userData));

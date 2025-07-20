@@ -41,9 +41,9 @@ const Sidebar = ({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Cargar usuario del localStorage
+  // Cargar usuario del sessionStorage
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         const user = JSON.parse(userData);

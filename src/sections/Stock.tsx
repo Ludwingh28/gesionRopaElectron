@@ -47,9 +47,9 @@ const Stock = () => {
 
   const itemsPerPage = 15;
 
-  // Cargar usuario actual del localStorage
+  // Cargar usuario actual del sessionStorage
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         const user = JSON.parse(userData);

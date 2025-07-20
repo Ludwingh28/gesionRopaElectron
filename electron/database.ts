@@ -747,20 +747,43 @@ export async function getComparativoVentasMensuales(mesesAtras: number = 12): Pr
   try {
     const sql = `
       SELECT 
-        YEAR(v.fecha_venta) AS año,
-        MONTH(v.fecha_venta) AS mes,
-        MONTHNAME(v.fecha_venta) AS nombre_mes,
-        COUNT(DISTINCT v.id) AS total_ventas,
-        SUM(v.total) AS total_facturado,
-        SUM(dv.cantidad) AS articulos_vendidos,
-        AVG(v.total) AS promedio_venta,
-        COUNT(DISTINCT v.usuario_id) AS vendedores_activos
-      FROM ventas v
-      JOIN detalle_ventas dv ON v.id = dv.venta_id
-      WHERE v.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-      AND v.estado = 'completada'
-      GROUP BY YEAR(v.fecha_venta), MONTH(v.fecha_venta)
-      ORDER BY año DESC, mes DESC
+  ano,
+  mes,
+  CASE mes
+    WHEN 1 THEN 'January'
+    WHEN 2 THEN 'February'
+    WHEN 3 THEN 'March'
+    WHEN 4 THEN 'April'
+    WHEN 5 THEN 'May'
+    WHEN 6 THEN 'June'
+    WHEN 7 THEN 'July'
+    WHEN 8 THEN 'August'
+    WHEN 9 THEN 'September'
+    WHEN 10 THEN 'October'
+    WHEN 11 THEN 'November'
+    WHEN 12 THEN 'December'
+  END AS nombre_mes,
+  total_ventas,
+  total_facturado,
+  articulos_vendidos,
+  promedio_venta,
+  vendedores_activos
+FROM (
+  SELECT 
+    YEAR(v.fecha_venta) AS ano,
+    MONTH(v.fecha_venta) AS mes,
+    COUNT(DISTINCT v.id) AS total_ventas,
+    SUM(v.total) AS total_facturado,
+    SUM(dv.cantidad) AS articulos_vendidos,
+    AVG(v.total) AS promedio_venta,
+    COUNT(DISTINCT v.usuario_id) AS vendedores_activos
+  FROM ventas v
+  JOIN detalle_ventas dv ON v.id = dv.venta_id
+  WHERE v.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+  AND v.estado = 'completada'
+  GROUP BY YEAR(v.fecha_venta), MONTH(v.fecha_venta)
+) subquery
+ORDER BY ano DESC, mes DESC;
     `;
 
     return await executeQuery(sql, [mesesAtras]);

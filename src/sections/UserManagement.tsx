@@ -22,9 +22,9 @@ const UserManagement = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Cargar usuario actual del localStorage
+  // Cargar usuario actual del sessionStorage
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       try {
         const user = JSON.parse(userData);

@@ -73,7 +73,7 @@ const Shop = () => {
 
   // Cargar usuario actual al montar el componente
   useEffect(() => {
-    const userData = localStorage.getItem("currentUser");
+    const userData = sessionStorage.getItem("currentUser");
     if (userData) {
       setCurrentUser(JSON.parse(userData));
     }
