@@ -19,7 +19,7 @@ const ProductManagement = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(15);
@@ -55,7 +55,7 @@ const ProductManagement = () => {
 
   useEffect(() => {
     if (barcode && showBarcode && barcodeRef.current) {
-      import('jsbarcode').then((JsBarcode) => {
+      import("jsbarcode").then((JsBarcode) => {
         JsBarcode.default(barcodeRef.current, barcode, {
           format: "CODE128",
           width: 2,
@@ -71,29 +71,31 @@ const ProductManagement = () => {
     let html5QrCode: any;
     let isRunning = false;
     if (showScanner && scannerRef.current) {
-      import('html5-qrcode').then(({ Html5Qrcode }) => {
+      import("html5-qrcode").then(({ Html5Qrcode }) => {
         html5QrCode = new Html5Qrcode("barcode-scanner");
-        html5QrCode.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: 250 },
-          (decodedText: string) => {
-            setSearch(decodedText);
-            setShowScanner(false);
-            setTimeout(() => {
-              const form = document.querySelector('form');
-              if (form) {
-                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        html5QrCode
+          .start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            (decodedText: string) => {
+              setSearch(decodedText);
+              setShowScanner(false);
+              setTimeout(() => {
+                const form = document.querySelector("form");
+                if (form) {
+                  form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                }
+              }, 100);
+              if (isRunning) {
+                html5QrCode.stop();
+                isRunning = false;
               }
-            }, 100);
-            if (isRunning) {
-              html5QrCode.stop();
-              isRunning = false;
-            }
-          },
-          () => {}
-        ).then(() => {
-          isRunning = true;
-        });
+            },
+            () => {}
+          )
+          .then(() => {
+            isRunning = true;
+          });
       });
     }
     return () => {
@@ -167,7 +169,7 @@ const ProductManagement = () => {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Si hay pocas páginas, mostrar todas
       for (let i = 1; i <= totalPages; i++) {
@@ -180,27 +182,27 @@ const ProductManagement = () => {
         for (let i = 1; i <= 4; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
         // Al final
         pageNumbers.push(1);
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         for (let i = totalPages - 3; i <= totalPages; i++) {
           pageNumbers.push(i);
         }
       } else {
         // En el medio
         pageNumbers.push(1);
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         pageNumbers.push(totalPages);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -251,13 +253,6 @@ const ProductManagement = () => {
             <button type="submit" className="bg-[#e87e8a] dark:bg-[#d6a463] text-white px-4 py-2 rounded font-semibold cursor-pointer">
               Buscar
             </button>
-            <button
-              type="button"
-              onClick={() => setShowScanner(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded font-semibold cursor-pointer"
-            >
-              Escanear código
-            </button>
           </form>
           <button
             onClick={() => {
@@ -284,10 +279,7 @@ const ProductManagement = () => {
               rowKey={(row) => row.id!}
               actions={(prod) => (
                 <div className="flex flex-wrap gap-2 justify-center items-center">
-                  <button
-                    onClick={() => handleEdit(prod)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer"
-                  >
+                  <button onClick={() => handleEdit(prod)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded font-semibold cursor-pointer">
                     Editar
                   </button>
                   <button
@@ -319,8 +311,8 @@ const ProductManagement = () => {
                     disabled={currentPage === 1}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
                       currentPage === 1
-                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                        ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                     }`}
                   >
                     Anterior
@@ -330,15 +322,15 @@ const ProductManagement = () => {
                   <div className="flex items-center gap-1">
                     {getPageNumbers().map((pageNumber, index) => (
                       <React.Fragment key={index}>
-                        {pageNumber === '...' ? (
+                        {pageNumber === "..." ? (
                           <span className="px-2 py-1 text-gray-500">...</span>
                         ) : (
                           <button
                             onClick={() => handlePageChange(pageNumber as number)}
                             className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
                               currentPage === pageNumber
-                                ? 'bg-[#e87e8a] dark:bg-[#d6a463] text-white'
-                                : 'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                ? "bg-[#e87e8a] dark:bg-[#d6a463] text-white"
+                                : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                             }`}
                           >
                             {pageNumber}
@@ -354,8 +346,8 @@ const ProductManagement = () => {
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors cursor-pointer ${
                       currentPage === totalPages
-                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                        ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                     }`}
                   >
                     Siguiente
@@ -373,15 +365,26 @@ const ProductManagement = () => {
       {showBarcode && barcode && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center gap-4 relative">
-            <button onClick={() => { setShowBarcode(false); setBarcode(null); setBarcodeProduct(null); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">×</button>
+            <button
+              onClick={() => {
+                setShowBarcode(false);
+                setBarcode(null);
+                setBarcodeProduct(null);
+              }}
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold"
+            >
+              ×
+            </button>
             <h3 className="text-xl font-bold mb-2">Código de Barras del Producto</h3>
             <div className="mb-2 text-center">
               <div className="font-semibold">{barcodeProduct?.detalle}</div>
-              <div className="text-sm text-gray-500">{barcodeProduct?.marca} - {barcodeProduct?.categoria}</div>
+              <div className="text-sm text-gray-500">
+                {barcodeProduct?.marca} - {barcodeProduct?.categoria}
+              </div>
             </div>
             {/* Área imprimible */}
             <div id="barcode-print-area" className="print-area bg-white p-4 rounded flex flex-col items-center gap-2">
-              <canvas ref={barcodeRef} style={{ display: 'block' }} />
+              <canvas ref={barcodeRef} style={{ display: "block" }} />
               <div className="font-bold text-lg mt-2">{barcode}</div>
               <div className="text-base">{barcodeProduct?.detalle}</div>
             </div>
@@ -425,18 +428,6 @@ const ProductManagement = () => {
                 }
               }
             `}</style>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de escaneo de código de barras */}
-      {showScanner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col items-center gap-4 relative w-full max-w-md">
-            <button onClick={() => setShowScanner(false)} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">×</button>
-            <h3 className="text-xl font-bold mb-2">Escanear Código de Barras</h3>
-            <div ref={scannerRef} id="barcode-scanner" style={{ width: 300, height: 300 }} />
-            <p className="text-sm text-gray-500">Apunta la cámara al código de barras del producto</p>
           </div>
         </div>
       )}
